@@ -26,8 +26,13 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const data = await request.json();
-  const existing = localDb.settings.findOne() || {};
-  const saved = localDb.settings.save({ ...existing, ...data });
-  return NextResponse.json(saved);
+  try {
+    const data = await request.json();
+    const existing = localDb.settings.findOne() || {};
+    const merged = { ...existing, ...data };
+    const saved = localDb.settings.save(merged);
+    return NextResponse.json(saved);
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Save failed" }, { status: 500 });
+  }
 }
