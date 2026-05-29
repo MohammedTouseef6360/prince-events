@@ -7,17 +7,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const featured = searchParams.get("featured");
 
-  try {
-    await dbConnect();
-    let query = {};
-    if (featured === "true") query = { featured: true };
-    const items = await MenuItem.find(query).sort({ createdAt: -1 });
-    return NextResponse.json(items);
-  } catch {
-    let items = localDb.menu.find();
-    if (featured === "true") items = items.filter((i: any) => i.featured);
-    return NextResponse.json(items);
-  }
+  let items = localDb.menu.find();
+  if (featured === "true") items = items.filter((i: any) => i.featured);
+  return NextResponse.json(items);
 }
 
 export async function POST(request: NextRequest) {

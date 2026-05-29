@@ -3,26 +3,27 @@ import path from "path";
 
 const DB_DIR = path.join(process.cwd(), "data");
 
-function ensureDir() {
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  }
+function safeRead(name: string): any[] {
+  try {
+    const filePath = path.join(DB_DIR, `${name}.json`);
+    if (!fs.existsSync(filePath)) return [];
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch { return []; }
+}
+
+function safeWrite(name: string, data: any[]) {
+  try {
+    if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+    fs.writeFileSync(path.join(DB_DIR, `${name}.json`), JSON.stringify(data, null, 2));
+  } catch {} // read-only filesystem
 }
 
 function readCollection(name: string): any[] {
-  ensureDir();
-  const filePath = path.join(DB_DIR, `${name}.json`);
-  if (!fs.existsSync(filePath)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-  } catch {
-    return [];
-  }
+  return safeRead(name);
 }
 
 function writeCollection(name: string, data: any[]) {
-  ensureDir();
-  fs.writeFileSync(path.join(DB_DIR, `${name}.json`), JSON.stringify(data, null, 2));
+  safeWrite(name, data);
 }
 
 let idCounter = Date.now();
