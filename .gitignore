@@ -7,5 +7,7 @@ next-env.d.ts
 dist/
 release/
 out/
-data/*.json
-!data/.gitkeep
+data/orders.json
+data/gallery.json
+data/testimonials.json
+data/settings.json
