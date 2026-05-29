@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { localDb } from "@/lib/local-db";
+import { firebaseDb } from "@/lib/firebase-db";
 
 export async function GET() {
-  return NextResponse.json(localDb.testimonials.find());
+  const items = await firebaseDb.testimonials.find();
+  return NextResponse.json(items);
 }
 
 export async function POST(request: NextRequest) {
   const data = await request.json();
-  const testimonial = localDb.testimonials.create(data);
-  return NextResponse.json(testimonial, { status: 201 });
+  const item = await firebaseDb.testimonials.create(data);
+  return NextResponse.json(item, { status: 201 });
 }

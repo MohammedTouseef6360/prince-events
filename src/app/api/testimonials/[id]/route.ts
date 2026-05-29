@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { localDb } from "@/lib/local-db";
+import { firebaseDb } from "@/lib/firebase-db";
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const item = localDb.testimonials.findByIdAndDelete(params.id);
+  const item = await firebaseDb.testimonials.findByIdAndDelete(params.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ message: "Deleted" });
 }

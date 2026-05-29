@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { localDb } from "@/lib/local-db";
+import { firebaseDb } from "@/lib/firebase-db";
 
-const defaultSettings = {
+const DEFAULT_SETTINGS = {
   businessName: "PRINCE EVENTS",
   tagline: "We Serve You Smile",
   phone: "+91 8618648069",
@@ -17,10 +17,10 @@ const defaultSettings = {
 };
 
 export async function GET() {
-  let settings = localDb.settings.findOne();
+  let settings = await firebaseDb.settings.findOne();
   if (!settings) {
-    settings = defaultSettings;
-    localDb.settings.save(defaultSettings);
+    settings = DEFAULT_SETTINGS;
+    await firebaseDb.settings.save(DEFAULT_SETTINGS);
   }
   return NextResponse.json(settings);
 }
@@ -28,9 +28,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const existing = localDb.settings.findOne() || {};
-    const merged = { ...existing, ...data };
-    const saved = localDb.settings.save(merged);
+    const saved = await firebaseDb.settings.save(data);
     return NextResponse.json(saved);
   } catch {
     return NextResponse.json({ error: "Save failed" }, { status: 500 });
