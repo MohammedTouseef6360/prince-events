@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRealtime } from "@/lib/use-realtime";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
@@ -47,6 +48,17 @@ export default function HomePage() {
   const [fbSending, setFbSending] = useState(false);
   const [fbError, setFbError] = useState("");
   const [pageError, setPageError] = useState("");
+  const realMenu = useRealtime<MenuItem>("menu");
+  const realFeedback = useRealtime<Feedback>("testimonials");
+
+  useEffect(() => {
+    if (realMenu.length > 0) setFeaturedItems(realMenu.filter((i) => i.featured));
+  }, [realMenu]);
+
+  useEffect(() => {
+    if (realFeedback.length > 0) setFeedbacks(realFeedback);
+  }, [realFeedback]);
+
   const fbAbortRef = useRef<AbortController | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

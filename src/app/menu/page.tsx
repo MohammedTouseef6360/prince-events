@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useRealtime } from "@/lib/use-realtime";
 import ItemTile from "@/components/ItemTile";
 import { HiSearch, HiMenu, HiEmojiSad } from "react-icons/hi";
 
@@ -34,6 +35,16 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const realItems = useRealtime<MenuItem>("menu");
+
+  useEffect(() => {
+    if (realItems.length > 0) {
+      setItems(realItems);
+      const cats = Array.from(new Set(realItems.map((i) => i.category))) as string[];
+      setCategories(cats);
+      setLoading(false);
+    }
+  }, [realItems]);
 
   useEffect(() => {
     fetch("/api/menu")

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
+import { useRealtime } from "@/lib/use-realtime";
 import { HiX, HiPhotograph, HiSearch } from "react-icons/hi";
 
 interface GalleryItem {
@@ -19,6 +20,14 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<GalleryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const realImages = useRealtime<GalleryItem>("gallery");
+
+  useEffect(() => {
+    if (realImages.length > 0) {
+      setImages(realImages);
+      setLoading(false);
+    }
+  }, [realImages]);
 
   useEffect(() => {
     fetch("/api/gallery")
