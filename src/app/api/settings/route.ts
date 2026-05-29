@@ -25,14 +25,18 @@ export async function GET() {
   return NextResponse.json(settings);
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const existing = localDb.settings.findOne() || {};
     const merged = { ...existing, ...data };
     const saved = localDb.settings.save(merged);
     return NextResponse.json(saved);
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Save failed" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Save failed" }, { status: 500 });
   }
+}
+
+export async function PUT(request: NextRequest) {
+  return POST(request);
 }
