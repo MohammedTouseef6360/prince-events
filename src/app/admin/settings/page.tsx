@@ -54,7 +54,9 @@ export default function AdminSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error(res.statusText);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setForm((f) => ({ ...f, ...data }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
