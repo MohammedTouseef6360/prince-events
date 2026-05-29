@@ -1,7 +1,7 @@
 @echo off
-title PRINCE EVENT'S - Stop Server
+title PRINCE EVENTS - Stop Server
 echo ============================================
-echo    PRINCE EVENT'S - Stopping Server
+echo    PRINCE EVENTS - Stopping Server
 echo ============================================
 echo.
 echo [*] Stopping Next.js server...

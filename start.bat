@@ -1,7 +1,7 @@
 @echo off
-title PRINCE EVENT'S
+title PRINCE EVENTS
 echo ============================================
-echo    PRINCE EVENT'S - Web Server
+echo    PRINCE EVENTS - Web Server
 echo    "We Serve You Smile"
 echo ============================================
 echo.

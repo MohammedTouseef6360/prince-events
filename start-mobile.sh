@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "============================================"
-echo "   PRINCE EVENT'S - Network Mode"
+echo "   PRINCE EVENTS - Network Mode"
 echo '   "We Serve You Smile"'
 echo "============================================"
 echo ""

@@ -44,7 +44,7 @@ function formatDate(d: Date): string {
 }
 
 export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderData; invoiceImageUrl?: string }) {
-  const [businessName, setBusinessName] = useState("PRINCE EVENT'S");
+  const [businessName, setBusinessName] = useState("PRINCE EVENTS");
   const [tagline, setTagline] = useState("We Serve You Smile");
   const [phone, setPhone] = useState("+91 8618648069");
   const [instagram, setInstagram] = useState("prince_events_001");

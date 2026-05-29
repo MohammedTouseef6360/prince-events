@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
             Admin Dashboard
           </h1>
           <p className="text-royal-gold/60 text-xs mt-0.5">
-            PRINCE EVENT'S — Business Analytics
+            PRINCE EVENTS — Business Analytics
           </p>
         </div>
         <div className="flex items-center gap-4">

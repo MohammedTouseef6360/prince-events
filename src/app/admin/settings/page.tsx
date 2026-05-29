@@ -9,7 +9,7 @@ export default function AdminSettingsPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const [form, setForm] = useState({
-    businessName: "PRINCE EVENT'S",
+    businessName: "PRINCE EVENTS",
     tagline: "We Serve You Smile",
     phone: "+91 8618648069",
     instagram: "prince_events_001",

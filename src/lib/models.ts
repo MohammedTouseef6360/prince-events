@@ -152,7 +152,7 @@ export interface ISettings extends Document {
 }
 
 const SettingsSchema = new Schema<ISettings>({
-  businessName: { type: String, default: "PRINCE EVENT'S" },
+  businessName: { type: String, default: "PRINCE EVENTS" },
   tagline: { type: String, default: "We Serve You Smile" },
   phone: { type: String, default: "+91 8618648069" },
   instagram: { type: String, default: "prince_events_001" },

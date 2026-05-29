@@ -12,7 +12,7 @@ function createWindow() {
     height: 800,
     minWidth: 375,
     minHeight: 600,
-    title: "PRINCE EVENT'S",
+    title: "PRINCE EVENTS",
     autoHideMenuBar: true,
     icon: path.join(__dirname, "..", "public", "favicon.svg"),
     webPreferences: {

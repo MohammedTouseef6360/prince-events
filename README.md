@@ -1,4 +1,4 @@
-# PRINCE EVENT'S
+# PRINCE EVENTS
 
 Royal wedding snacks and starters website. No database required — works out of the box.
 

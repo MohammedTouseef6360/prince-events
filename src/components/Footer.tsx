@@ -51,7 +51,7 @@ export default function Footer() {
         <div className="gold-divider my-6" />
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-royal-gold/70">
-            &copy; {new Date().getFullYear()} PRINCE EVENT'S. {t("footer.rights")}
+            &copy; {new Date().getFullYear()} PRINCE EVENTS. {t("footer.rights")}
           </p>
           <Link
             href="/admin/login"

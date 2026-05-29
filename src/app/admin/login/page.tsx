@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
             {t("admin.login")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            PRINCE EVENT'S — Admin Panel
+            PRINCE EVENTS — Admin Panel
           </p>
         </div>
 

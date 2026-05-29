@@ -4,7 +4,7 @@ import { Settings } from "@/lib/models";
 import { localDb } from "@/lib/local-db";
 
 const defaultSettings = {
-  businessName: "PRINCE EVENT'S",
+  businessName: "PRINCE EVENTS",
   tagline: "We Serve You Smile",
   phone: "+91 8618648069",
   instagram: "prince_events_001",

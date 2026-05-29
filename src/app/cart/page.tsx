@@ -33,7 +33,7 @@ export default function CartPage() {
   const total = subtotal + travelCharge;
 
   const formatOrderMessage = () => {
-    let msg = `*New Order - PRINCE EVENT'S*\n\n`;
+    let msg = `*New Order - PRINCE EVENTS*\n\n`;
     msg += `Name: ${customerName}\n`;
     msg += `Phone: ${phone}\n`;
     msg += `Wedding Date: ${date}\n`;

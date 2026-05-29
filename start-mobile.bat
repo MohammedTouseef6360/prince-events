@@ -1,7 +1,7 @@
 @echo off
-title PRINCE EVENT'S - Mobile/Network Mode
+title PRINCE EVENTS - Mobile/Network Mode
 echo ============================================
-echo    PRINCE EVENT'S - Network Mode
+echo    PRINCE EVENTS - Network Mode
 echo    "We Serve You Smile"
 echo ============================================
 echo.

@@ -34,7 +34,7 @@
   },
   "build": {
     "appId": "com.princeevents.app",
-    "productName": "PRINCE EVENT'S",
+    "productName": "PRINCE EVENTS",
     "directories": {
       "output": "release"
     },

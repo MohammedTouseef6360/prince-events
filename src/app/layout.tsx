@@ -6,24 +6,24 @@ const siteUrl = "https://princeevents.in";
 
 export const metadata: Metadata = {
   title: {
-    default: "PRINCE EVENT'S - We Serve You Smile",
-    template: "%s | PRINCE EVENT'S",
+    default: "PRINCE EVENTS - We Serve You Smile",
+    template: "%s | PRINCE EVENTS",
   },
   description:
-    "Royal wedding snacks and starters in Bengaluru, Karnataka. Wedding catering, snack stalls, and event food services by PRINCE EVENT'S.",
+    "Royal wedding snacks and starters in Bengaluru, Karnataka. Wedding catering, snack stalls, and event food services by PRINCE EVENTS.",
   keywords: ["wedding snacks", "catering Bengaluru", "wedding starters", "Prince Events", "event catering", "snack stall"],
-  authors: [{ name: "PRINCE EVENT'S" }],
+  authors: [{ name: "PRINCE EVENTS" }],
   openGraph: {
-    title: "PRINCE EVENT'S - We Serve You Smile",
+    title: "PRINCE EVENTS - We Serve You Smile",
     description: "Royal wedding snacks and starters in Bengaluru, Karnataka.",
     url: siteUrl,
-    siteName: "PRINCE EVENT'S",
+    siteName: "PRINCE EVENTS",
     locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PRINCE EVENT'S - We Serve You Smile",
+    title: "PRINCE EVENTS - We Serve You Smile",
     description: "Royal wedding snacks and starters in Bengaluru, Karnataka.",
   },
   robots: { index: true, follow: true },
@@ -43,7 +43,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#800020" />
-        <meta name="application-name" content="PRINCE EVENT'S" />
+        <meta name="application-name" content="PRINCE EVENTS" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Prince Events" />

@@ -17,7 +17,7 @@ interface Settings {
 }
 
 const defaults: Settings = {
-  businessName: "PRINCE EVENT'S",
+  businessName: "PRINCE EVENTS",
   tagline: "We Serve You Smile",
   phone: "+91 8618648069",
   instagram: "prince_events_001",

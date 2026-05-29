@@ -1,7 +1,7 @@
 @echo off
-title PRINCE EVENT'S - Production Server
+title PRINCE EVENTS - Production Server
 echo ============================================
-echo    PRINCE EVENT'S - Production Mode
+echo    PRINCE EVENTS - Production Mode
 echo    "We Serve You Smile"
 echo ============================================
 echo.
