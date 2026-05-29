@@ -1,29 +1,34 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
-const DB_DIR = path.join(process.cwd(), "data");
+const SEED_DIR = path.join(process.cwd(), "data");
+const TMP_DIR = path.join(os.tmpdir(), "prince-events-data");
 
-function safeRead(name: string): any[] {
+const memoryStore: Record<string, any[]> = {};
+
+function loadCollection(name: string): any[] {
+  if (memoryStore[name]) return memoryStore[name];
+  const seed = tryRead(path.join(SEED_DIR, `${name}.json`));
+  const tmp = tryRead(path.join(TMP_DIR, `${name}.json`));
+  const merged = [...(Array.isArray(seed) ? seed : []), ...(Array.isArray(tmp) ? tmp : [])];
+  memoryStore[name] = merged;
+  return merged;
+}
+
+function tryRead(filePath: string): any[] {
   try {
-    const filePath = path.join(DB_DIR, `${name}.json`);
-    if (!fs.existsSync(filePath)) return [];
-    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-  } catch { return []; }
+    if (fs.existsSync(filePath)) return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch {}
+  return [];
 }
 
-function safeWrite(name: string, data: any[]) {
+function persist(name: string) {
   try {
-    if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
-    fs.writeFileSync(path.join(DB_DIR, `${name}.json`), JSON.stringify(data, null, 2));
-  } catch {} // read-only filesystem
-}
-
-function readCollection(name: string): any[] {
-  return safeRead(name);
-}
-
-function writeCollection(name: string, data: any[]) {
-  safeWrite(name, data);
+    if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+    const data = memoryStore[name] || [];
+    fs.writeFileSync(path.join(TMP_DIR, `${name}.json`), JSON.stringify(data, null, 2));
+  } catch {}
 }
 
 let idCounter = Date.now();
@@ -34,114 +39,125 @@ function generateId() {
 export const localDb = {
   menu: {
     find() {
-      return readCollection("menu");
+      return loadCollection("menu");
     },
     findById(id: string) {
-      return readCollection("menu").find((i) => i._id === id) || null;
+      return loadCollection("menu").find((i: any) => i._id === id) || null;
     },
     create(data: any) {
-      const items = readCollection("menu");
+      const items = loadCollection("menu");
       const item = { _id: generateId(), ...data, createdAt: new Date().toISOString() };
       items.push(item);
-      writeCollection("menu", items);
+      memoryStore.menu = items;
+      persist("menu");
       return item;
     },
     findByIdAndUpdate(id: string, data: any) {
-      const items = readCollection("menu");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("menu");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       items[idx] = { ...items[idx], ...data };
-      writeCollection("menu", items);
+      memoryStore.menu = items;
+      persist("menu");
       return items[idx];
     },
     findByIdAndDelete(id: string) {
-      const items = readCollection("menu");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("menu");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       const deleted = items.splice(idx, 1);
-      writeCollection("menu", items);
+      memoryStore.menu = items;
+      persist("menu");
       return deleted[0];
     },
   },
   orders: {
     find() {
-      return readCollection("orders");
+      return loadCollection("orders");
     },
     create(data: any) {
-      const items = readCollection("orders");
+      const items = loadCollection("orders");
       const item = { _id: generateId(), ...data, status: "pending", createdAt: new Date().toISOString() };
       items.push(item);
-      writeCollection("orders", items);
+      memoryStore.orders = items;
+      persist("orders");
       return item;
     },
     findByIdAndUpdate(id: string, data: any) {
-      const items = readCollection("orders");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("orders");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       items[idx] = { ...items[idx], ...data };
-      writeCollection("orders", items);
+      memoryStore.orders = items;
+      persist("orders");
       return items[idx];
     },
     findByIdAndDelete(id: string) {
-      const items = readCollection("orders");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("orders");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       const deleted = items.splice(idx, 1);
-      writeCollection("orders", items);
+      memoryStore.orders = items;
+      persist("orders");
       return deleted[0];
     },
   },
   gallery: {
     find() {
-      return readCollection("gallery");
+      return loadCollection("gallery");
     },
     create(data: any) {
-      const items = readCollection("gallery");
+      const items = loadCollection("gallery");
       const item = { _id: generateId(), ...data, createdAt: new Date().toISOString() };
       items.push(item);
-      writeCollection("gallery", items);
+      memoryStore.gallery = items;
+      persist("gallery");
       return item;
     },
     findByIdAndDelete(id: string) {
-      const items = readCollection("gallery");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("gallery");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       const deleted = items.splice(idx, 1);
-      writeCollection("gallery", items);
+      memoryStore.gallery = items;
+      persist("gallery");
       return deleted[0];
     },
   },
   testimonials: {
     find() {
-      return readCollection("testimonials");
+      return loadCollection("testimonials");
     },
     create(data: any) {
-      const items = readCollection("testimonials");
+      const items = loadCollection("testimonials");
       const item = { _id: generateId(), ...data, createdAt: new Date().toISOString() };
       items.push(item);
-      writeCollection("testimonials", items);
+      memoryStore.testimonials = items;
+      persist("testimonials");
       return item;
     },
     findByIdAndDelete(id: string) {
-      const items = readCollection("testimonials");
-      const idx = items.findIndex((i) => i._id === id);
+      const items = loadCollection("testimonials");
+      const idx = items.findIndex((i: any) => i._id === id);
       if (idx === -1) return null;
       const deleted = items.splice(idx, 1);
-      writeCollection("testimonials", items);
+      memoryStore.testimonials = items;
+      persist("testimonials");
       return deleted[0];
     },
   },
   settings: {
     findOne() {
-      const raw = readCollection("settings");
+      const raw = loadCollection("settings");
       if (Array.isArray(raw)) return raw[0] || null;
-      if (raw && typeof raw === "object") return raw;
+      if (raw && typeof raw === "object") return raw as any;
       return null;
     },
     save(data: any) {
       const existing = this.findOne() || {};
       const merged = { ...existing, ...data };
-      writeCollection("settings", [merged]);
+      memoryStore.settings = [merged];
+      persist("settings");
       return merged;
     },
   },
