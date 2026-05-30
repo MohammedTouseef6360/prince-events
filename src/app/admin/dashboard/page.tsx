@@ -326,31 +326,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Upcoming Events */}
-            <div className="royal-card p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <HiCalendar className="text-royal-gold" size={18} />
-                <h3 className="font-bold text-sm text-royal-maroon dark:text-royal-gold">Upcoming Events</h3>
-              </div>
-              {orders.filter((o) => o.status !== "delivered").slice(0, 4).length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-4">All orders delivered</p>
-              ) : (
-                <div className="space-y-2">
-                  {orders.filter((o) => o.status !== "delivered").slice(0, 4).map((o) => (
-                    <div key={o._id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{o.customerName}</p>
-                        <p className="text-[10px] text-gray-500">{formatDate(o.date)} · {o.venue?.slice(0, 15)}...</p>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        o.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                        o.status === "confirmed" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-                      }`}>{o.status}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
           </div>
         </div>
         </>
