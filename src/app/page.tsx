@@ -157,13 +157,13 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl font-bold mb-4 text-royal-gold leading-tight">
-              {t("home.hero_title")}
+              {settings.heroTitle || t("home.hero_title")}
             </h1>
             <p className="text-xl sm:text-2xl text-royal-gold-light font-heading italic mb-4 tracking-wide">
-              &ldquo;{t("home.hero_subtitle")}&rdquo;
+              &ldquo;{settings.heroSubtitle || t("home.hero_subtitle")}&rdquo;
             </p>
             <p className="text-lg sm:text-xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
-              {t("home.hero_desc")}
+              {lang === "kn" && settings.heroDescKN ? settings.heroDescKN : lang === "hi" && settings.heroDescHI ? settings.heroDescHI : settings.heroDesc || t("home.hero_desc")}
             </p>
 
             {/* Elegant scroll indicator */}

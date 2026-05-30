@@ -8,7 +8,7 @@ import {
   HiCheck, HiCog, HiSearch, HiFilter, HiX,
   HiClock, HiShoppingBag, HiPhone, HiLocationMarker,
   HiCalendar, HiArrowLeft, HiChevronDown, HiTrash, HiSortAscending,
-  HiPhotograph, HiEye,
+  HiPhotograph, HiEye, HiPencil, HiPlus, HiSave,
 } from "react-icons/hi";
 
 interface OrderItem {
@@ -62,6 +62,10 @@ function AdminOrdersPage() {
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
+  const [editingOrder, setEditingOrder] = useState<string | null>(null);
+  const [editItems, setEditItems] = useState<OrderItem[]>([]);
+  const [editTravelCharge, setEditTravelCharge] = useState(0);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -117,6 +121,44 @@ function AdminOrdersPage() {
       setError(e instanceof Error ? e.message : "Delete failed");
     }
     setDeletingOrder(null);
+  };
+
+  const startEditing = (order: Order) => {
+    setEditingOrder(order._id);
+    setEditItems(order.items.map((i) => ({ ...i })));
+    setEditTravelCharge(order.travelCharge);
+  };
+
+  const addEditItem = () => {
+    setEditItems((prev) => [...prev, { itemName: "", qty: 1, price: 0, pricingType: "per_piece" }]);
+  };
+
+  const removeEditItem = (idx: number) => {
+    setEditItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateEditItem = (idx: number, field: keyof OrderItem, value: string | number) => {
+    setEditItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const saveInvoiceEdit = async (id: string) => {
+    setSavingEdit(true);
+    setError("");
+    const subtotal = editItems.reduce((s, i) => s + i.qty * i.price, 0);
+    const total = subtotal + editTravelCharge;
+    try {
+      const res = await fetch(`/api/orders/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: editItems, subtotal, total, travelCharge: editTravelCharge }),
+      });
+      if (!res.ok) throw new Error(res.statusText);
+      setEditingOrder(null);
+      fetchOrders();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+    setSavingEdit(false);
   };
 
   const handleInvoiceUpload = async (id: string, file: File) => {
@@ -462,38 +504,115 @@ function AdminOrdersPage() {
                       </div>
 
                       {/* Items Table */}
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="bg-gray-100 dark:bg-gray-800">
-                              <th className="text-left px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Item</th>
-                              <th className="text-center px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Qty</th>
-                              <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Rate</th>
-                              <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {order.items.map((item, i) => (
-                              <tr key={i} className="border-t border-gray-100 dark:border-gray-700/50">
-                                <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-gray-200">{item.itemName}</td>
-                                <td className="text-center px-4 py-2.5 text-gray-600 dark:text-gray-400">{item.qty}</td>
-                                <td className="text-right px-4 py-2.5 text-gray-600 dark:text-gray-400">
-                                  ₹{item.price}/{item.pricingType === "per_time" ? "time" : item.pricingType === "per_plate" ? "plate" : "pc"}
-                                </td>
-                                <td className="text-right px-4 py-2.5 font-bold text-gray-800 dark:text-gray-200">₹{item.price * item.qty}</td>
+                      {editingOrder === order._id ? (
+                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl overflow-hidden">
+                          <div className="p-2 flex items-center justify-between bg-gray-100 dark:bg-gray-800">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Editing Invoice Items</span>
+                            <button onClick={() => addEditItem()} className="text-xs bg-royal-gold text-royal-maroon font-bold px-3 py-1 rounded-lg hover:bg-royal-gold-light flex items-center gap-1">
+                              <HiPlus size={12} /> Add Item
+                            </button>
+                          </div>
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-gray-100 dark:bg-gray-800">
+                                <th className="text-left px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Item</th>
+                                <th className="text-center px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Qty</th>
+                                <th className="text-right px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Rate</th>
+                                <th className="text-right px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Total</th>
+                                <th className="w-10"></th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {editItems.map((item, i) => (
+                                <tr key={i} className="border-t border-gray-100 dark:border-gray-700/50">
+                                  <td className="px-2 py-1.5">
+                                    <input
+                                      type="text"
+                                      value={item.itemName}
+                                      onChange={(e) => updateEditItem(i, "itemName", e.target.value)}
+                                      className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs"
+                                      placeholder="Item name"
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 text-center">
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={item.qty}
+                                      onChange={(e) => updateEditItem(i, "qty", Number(e.target.value))}
+                                      className="w-14 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-center"
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 text-right">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.5"
+                                      value={item.price}
+                                      onChange={(e) => updateEditItem(i, "price", Number(e.target.value))}
+                                      className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-right"
+                                    />
+                                  </td>
+                                  <td className="px-2 py-1.5 text-right font-bold text-xs">₹{(item.qty * item.price).toFixed(2)}</td>
+                                  <td className="px-2 py-1.5">
+                                    <button onClick={() => removeEditItem(i)} className="text-red-500 hover:text-red-700 p-1">
+                                      <HiTrash size={14} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl overflow-hidden">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="bg-gray-100 dark:bg-gray-800">
+                                <th className="text-left px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Item</th>
+                                <th className="text-center px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Qty</th>
+                                <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Rate</th>
+                                <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {order.items.map((item, i) => (
+                                <tr key={i} className="border-t border-gray-100 dark:border-gray-700/50">
+                                  <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-gray-200">{item.itemName}</td>
+                                  <td className="text-center px-4 py-2.5 text-gray-600 dark:text-gray-400">{item.qty}</td>
+                                  <td className="text-right px-4 py-2.5 text-gray-600 dark:text-gray-400">
+                                    ₹{item.price}/{item.pricingType === "per_time" ? "time" : item.pricingType === "per_plate" ? "plate" : "pc"}
+                                  </td>
+                                  <td className="text-right px-4 py-2.5 font-bold text-gray-800 dark:text-gray-200">₹{item.price * item.qty}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
 
                       {/* Travel + Total */}
                       <div className="flex flex-col items-end mt-2 space-y-1">
-                        {order.travelCharge > 0 && (
+                        {editingOrder === order._id ? (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-500">Travel Charge:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={editTravelCharge}
+                              onChange={(e) => setEditTravelCharge(Number(e.target.value))}
+                              className="w-24 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-right"
+                            />
+                          </div>
+                        ) : order.travelCharge > 0 ? (
                           <div className="text-sm text-gray-500">Travel Charge: +₹{order.travelCharge}</div>
-                        )}
+                        ) : null}
                         <div className="text-lg font-bold">
-                          <span className="text-royal-maroon dark:text-royal-gold">Total: ₹{order.total}</span>
+                          <span className="text-royal-maroon dark:text-royal-gold">
+                            Total: ₹{editingOrder === order._id
+                              ? (editItems.reduce((s, i) => s + i.qty * i.price, 0) + editTravelCharge).toFixed(2)
+                              : order.total}
+                          </span>
                         </div>
                       </div>
 
@@ -501,36 +620,63 @@ function AdminOrdersPage() {
                       <div className="mt-4 pt-4 border-t border-royal-gold/10">
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-bold">Invoice</p>
                         <div className="flex flex-wrap items-center gap-2">
-                          <PDFDownload
-                            order={{
-                              customerName: order.customerName,
-                              phone: order.phone,
-                              date: order.date,
-                              venue: order.venue,
-                              time: order.time,
-                              items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
-                              subtotal: order.subtotal,
-                              travelCharge: order.travelCharge,
-                              total: order.total,
-                            }}
-                            invoiceImageUrl={order.invoiceImage}
-                          />
-                          {order.invoiceImage ? (
-                            <a
-                              href={order.invoiceImage}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold px-3 py-2 rounded-xl hover:bg-purple-100 transition flex items-center gap-1.5"
-                            >
-                              <HiEye size={14} /> View Uploaded Invoice
-                            </a>
+                          {editingOrder === order._id ? (
+                            <>
+                              <button
+                                onClick={() => saveInvoiceEdit(order._id)}
+                                disabled={savingEdit}
+                                className="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                {savingEdit ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <HiSave size={14} />}
+                                {savingEdit ? "Saving..." : "Save Changes"}
+                              </button>
+                              <button
+                                onClick={() => setEditingOrder(null)}
+                                className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 hover:bg-gray-300"
+                              >
+                                <HiX size={14} /> Cancel
+                              </button>
+                            </>
                           ) : (
-                            <button
-                              onClick={() => setUploadTarget(uploadTarget === order._id ? null : order._id)}
-                              className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold px-3 py-2 rounded-xl hover:bg-amber-100 transition flex items-center gap-1.5"
-                            >
-                              <HiPhotograph size={14} /> Upload Invoice Image
-                            </button>
+                            <>
+                              <button
+                                onClick={() => startEditing(order)}
+                                className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold px-3 py-2 rounded-xl hover:bg-blue-100 transition flex items-center gap-1.5"
+                              >
+                                <HiPencil size={14} /> Edit Invoice
+                              </button>
+                              <PDFDownload
+                                order={{
+                                  customerName: order.customerName,
+                                  phone: order.phone,
+                                  date: order.date,
+                                  venue: order.venue,
+                                  time: order.time,
+                                  items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
+                                  subtotal: order.subtotal,
+                                  travelCharge: order.travelCharge,
+                                  total: order.total,
+                                }}
+                                invoiceImageUrl={order.invoiceImage}
+                              />
+                              {order.invoiceImage ? (
+                                <a
+                                  href={order.invoiceImage}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold px-3 py-2 rounded-xl hover:bg-purple-100 transition flex items-center gap-1.5"
+                                >
+                                  <HiEye size={14} /> View Uploaded Invoice
+                                </a>
+                              ) : (
+                                <button
+                                  onClick={() => setUploadTarget(uploadTarget === order._id ? null : order._id)}
+                                  className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold px-3 py-2 rounded-xl hover:bg-amber-100 transition flex items-center gap-1.5"
+                                >
+                                  <HiPhotograph size={14} /> Upload Invoice Image
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                         {uploadTarget === order._id && (

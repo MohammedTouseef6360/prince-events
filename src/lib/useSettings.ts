@@ -14,6 +14,11 @@ interface Settings {
   freeRadius: number;
   travelChargePerKm: number;
   adminPassword: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroDesc: string;
+  heroDescKN: string;
+  heroDescHI: string;
 }
 
 const defaults: Settings = {
@@ -28,6 +33,11 @@ const defaults: Settings = {
   freeRadius: 10,
   travelChargePerKm: 10,
   adminPassword: "prince@123",
+  heroTitle: "",
+  heroSubtitle: "",
+  heroDesc: "",
+  heroDescKN: "",
+  heroDescHI: "",
 };
 
 export function useSettings() {

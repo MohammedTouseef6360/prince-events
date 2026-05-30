@@ -20,6 +20,11 @@ export default function AdminSettingsPage() {
     freeRadius: 10,
     travelChargePerKm: 10,
     adminPassword: "prince@123",
+    heroTitle: "PRINCE EVENTS",
+    heroSubtitle: "We Serve You Smile",
+    heroDesc: "",
+    heroDescKN: "",
+    heroDescHI: "",
   });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -178,6 +183,48 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hero Title</label>
+              <input
+                type="text"
+                value={form.heroTitle}
+                onChange={(e) => setForm((f) => ({ ...f, heroTitle: e.target.value }))}
+                className="royal-input"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hero Subtitle</label>
+              <input
+                type="text"
+                value={form.heroSubtitle}
+                onChange={(e) => setForm((f) => ({ ...f, heroSubtitle: e.target.value }))}
+                className="royal-input"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hero Description (English)</label>
+              <textarea
+                value={form.heroDesc}
+                onChange={(e) => setForm((f) => ({ ...f, heroDesc: e.target.value }))}
+                className="royal-input h-24 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hero Description (Kannada)</label>
+              <textarea
+                value={form.heroDescKN}
+                onChange={(e) => setForm((f) => ({ ...f, heroDescKN: e.target.value }))}
+                className="royal-input h-24 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Hero Description (Hindi)</label>
+              <textarea
+                value={form.heroDescHI}
+                onChange={(e) => setForm((f) => ({ ...f, heroDescHI: e.target.value }))}
+                className="royal-input h-24 resize-none"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">About Us (English)</label>
               <textarea

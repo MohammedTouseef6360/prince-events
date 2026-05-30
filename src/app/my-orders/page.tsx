@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
+import { useCart } from "@/context/CartContext";
 import PDFDownload from "@/components/PDFDownload";
-import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList, HiChat } from "react-icons/hi";
+import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList, HiChat, HiRefresh } from "react-icons/hi";
 
 interface OrderItem {
   itemName: string;
@@ -86,6 +88,8 @@ function OrderTracker({ status }: { status: string }) {
 export default function MyOrdersPage() {
   const { t } = useLanguage();
   const { settings } = useSettings();
+  const { addItem } = useCart();
+  const router = useRouter();
   const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -280,6 +284,26 @@ export default function MyOrdersPage() {
                       className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-bold transition-colors"
                     >
                       <HiChat size={16} /> Chat on WhatsApp
+                    </button>
+                    <button
+                      onClick={() => {
+                        order.items.forEach((item) => {
+                          addItem({
+                            id: item.itemName,
+                            key: item.itemName,
+                            name: item.itemName,
+                            price: item.price,
+                            qty: item.qty,
+                            pricingType: item.pricingType,
+                            pricingLabel: item.pricingType,
+                            image: "",
+                          });
+                        });
+                        router.push("/cart");
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-royal-maroon hover:bg-royal-maroon-dark text-white rounded-lg text-sm font-bold transition-colors"
+                    >
+                      <HiRefresh size={16} /> Reorder
                     </button>
                   </div>
                 </div>

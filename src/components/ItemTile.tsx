@@ -63,11 +63,11 @@ export default function ItemTile({ item }: ItemTileProps) {
     <>
       <div
         onClick={() => item.inStock && setModalOpen(true)}
-        className={`royal-card overflow-hidden group cursor-pointer ${
+        className={`royal-card overflow-hidden group cursor-pointer h-full flex flex-col ${
           !item.inStock ? "opacity-70 cursor-not-allowed" : ""
         }`}
       >
-        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="relative h-52 shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
           {item.image && !imgError ? (
             <Image
               src={item.image}
@@ -97,7 +97,7 @@ export default function ItemTile({ item }: ItemTileProps) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-1">
           <h3 className="font-heading text-lg font-bold text-royal-maroon dark:text-royal-gold mb-1 group-hover:text-royal-gold-dark transition-colors">
             {displayName}
           </h3>
@@ -106,7 +106,7 @@ export default function ItemTile({ item }: ItemTileProps) {
               {displayDesc}
             </p>
           )}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto">
             <span className="text-royal-maroon dark:text-royal-gold font-bold text-lg">
               {showRange ? `₹${minPrice} - ₹${maxPrice}` : `₹${item.price}`}
             </span>

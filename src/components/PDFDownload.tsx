@@ -324,7 +324,8 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
       }
     }
 
-    doc.save(`PRINCE-EVENTS-Invoice-${Date.now().toString().slice(-8)}.pdf`);
+    const blob = doc.output('bloburl');
+    window.open(blob, '_blank');
   };
 
   return (
