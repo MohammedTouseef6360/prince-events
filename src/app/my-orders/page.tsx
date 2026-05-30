@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
+import { useSettings } from "@/lib/useSettings";
 import PDFDownload from "@/components/PDFDownload";
-import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList } from "react-icons/hi";
+import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList, HiChat } from "react-icons/hi";
 
 interface OrderItem {
   itemName: string;
@@ -84,6 +85,7 @@ function OrderTracker({ status }: { status: string }) {
 
 export default function MyOrdersPage() {
   const { t } = useLanguage();
+  const { settings } = useSettings();
   const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -249,24 +251,32 @@ export default function MyOrdersPage() {
                     <span className="text-royal-maroon dark:text-royal-gold">{t("my_orders.total")}</span>
                     <span className="text-royal-maroon dark:text-royal-gold">₹{order.total}</span>
                   </div>
-                  {order.invoiceImage && (
-                    <div className="mt-3 pt-3 border-t border-royal-gold/10">
-                      <PDFDownload
-                        order={{
-                          customerName: order.customerName,
-                          phone: order.phone,
-                          date: order.date,
-                          venue: order.venue,
-                          time: order.time,
-                          items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
-                          subtotal: order.subtotal,
-                          travelCharge: order.travelCharge,
-                          total: order.total,
-                        }}
-                        invoiceImageUrl={order.invoiceImage}
-                      />
-                    </div>
-                  )}
+                  <div className="mt-3 pt-3 border-t border-royal-gold/10 flex flex-wrap gap-2">
+                    <PDFDownload
+                      order={{
+                        customerName: order.customerName,
+                        phone: order.phone,
+                        date: order.date,
+                        venue: order.venue,
+                        time: order.time,
+                        items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
+                        subtotal: order.subtotal,
+                        travelCharge: order.travelCharge,
+                        total: order.total,
+                      }}
+                      invoiceImageUrl={order.invoiceImage}
+                    />
+                    <button
+                      onClick={() => {
+                        const num = settings.phone.replace(/\D/g, "");
+                        const msg = encodeURIComponent(`Hi, I have an order #${order._id.slice(-6)}`);
+                        window.location.href = `https://wa.me/${num}?text=${msg}`;
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-bold transition-colors"
+                    >
+                      <HiChat size={16} /> Chat on WhatsApp
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
