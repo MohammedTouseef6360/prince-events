@@ -106,7 +106,7 @@ export default function CartPage() {
     }
 
     localStorage.setItem("prince-events-order-phone", phone);
-    window.open(url, "_blank");
+    window.location.href = url;
     clearCart();
     localStorage.removeItem("prince-events-cart");
     setOrderPlaced(true);
