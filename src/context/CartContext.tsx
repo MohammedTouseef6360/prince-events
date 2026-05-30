@@ -4,12 +4,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export interface CartItem {
   id: string;
+  key: string;
   name: string;
   price: number;
   qty: number;
   pricingType: string;
   pricingLabel: string;
   image: string;
+  flavor?: string;
 }
 
 interface CartContextType {
@@ -33,7 +35,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem("prince-events-cart");
     if (stored) {
       try {
-        setItems(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const migrated = parsed.map((item: any) => ({
+          ...item,
+          key: item.key || item.id,
+        }));
+        setItems(migrated);
       } catch {}
     }
   }, []);
@@ -46,26 +53,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: CartItem) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
+      const existing = prev.find((i) => i.key === item.key);
       if (existing) {
         return prev.map((i) =>
-          i.id === item.id ? { ...i, qty: i.qty + item.qty } : i
+          i.key === item.key ? { ...i, qty: i.qty + item.qty } : i
         );
       }
       return [...prev, item];
     });
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  const removeItem = (key: string) => {
+    setItems((prev) => prev.filter((i) => i.key !== key));
   };
 
-  const updateQty = (id: string, qty: number) => {
+  const updateQty = (key: string, qty: number) => {
     if (qty <= 0) {
-      removeItem(id);
+      removeItem(key);
       return;
     }
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
+    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty } : i)));
   };
 
   const clearCart = () => {

@@ -6,6 +6,11 @@ import { useLanguage } from "@/context/LanguageContext";
 import { HiStar, HiCollection } from "react-icons/hi";
 import ItemModal from "./ItemModal";
 
+interface Flavor {
+  name: string;
+  price: number;
+}
+
 interface ItemTileProps {
   item: {
     _id: string;
@@ -24,6 +29,8 @@ interface ItemTileProps {
     image: string;
     featured: boolean;
     inStock: boolean;
+    hasFlavors?: boolean;
+    flavors?: Flavor[];
   };
 }
 
@@ -46,6 +53,11 @@ export default function ItemTile({ item }: ItemTileProps) {
     lang === "kn" && item.pricingLabelKN ? item.pricingLabelKN :
     lang === "hi" && item.pricingLabelHI ? item.pricingLabelHI :
     item.pricingLabel;
+
+  const flavorPrices = item.hasFlavors && item.flavors?.length ? item.flavors.map((f) => f.price) : [];
+  const minPrice = flavorPrices.length ? Math.min(...flavorPrices) : item.price;
+  const maxPrice = flavorPrices.length ? Math.max(...flavorPrices) : item.price;
+  const showRange = item.hasFlavors && flavorPrices.length > 0;
 
   return (
     <>
@@ -96,7 +108,7 @@ export default function ItemTile({ item }: ItemTileProps) {
           )}
           <div className="flex items-center justify-between">
             <span className="text-royal-maroon dark:text-royal-gold font-bold text-lg">
-              ₹{item.price}
+              {showRange ? `₹${minPrice} - ₹${maxPrice}` : `₹${item.price}`}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
               {displayPricingLabel}

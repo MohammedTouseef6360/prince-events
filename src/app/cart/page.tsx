@@ -272,7 +272,7 @@ export default function CartPage() {
           <div className="space-y-3 mb-4">
             {items.map((item) => (
               <div
-                key={item.id}
+                key={item.key}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
               >
                 <div className="flex-1">
@@ -285,29 +285,13 @@ export default function CartPage() {
                 </div>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => updateQty(item.id, item.qty - 1)}
-                      className="p-1 rounded border border-royal-gold/30 hover:bg-royal-gold/10"
-                    >
-                      <HiMinus size={14} />
-                    </button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.qty}
-                      onChange={(e) => {
-                        const v = parseInt(e.target.value) || 1;
-                        updateQty(item.id, Math.max(1, v));
-                      }}
-                      className="w-12 text-center font-bold bg-transparent border border-royal-gold/30 rounded py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-royal-gold"
-                    />
-                    <button
-                      onClick={() => updateQty(item.id, item.qty + 1)}
-                      className="p-1 rounded border border-royal-gold/30 hover:bg-royal-gold/10"
-                    >
-                      <HiPlus size={14} />
-                    </button>
-                  <button
-                    onClick={() => removeItem(item.id)}
+                      onClick={() => updateQty(item.key, item.qty - 1)}
+
+                          updateQty(item.key, Math.max(1, v));
+
+                      onClick={() => updateQty(item.key, item.qty + 1)}
+
+                    onClick={() => removeItem(item.key)}
                     className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-1"
                   >
                     <HiTrash size={16} />

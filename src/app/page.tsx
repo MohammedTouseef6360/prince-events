@@ -9,6 +9,11 @@ import ItemTile from "@/components/ItemTile";
 import FeaturedSlideshow from "@/components/FeaturedSlideshow";
 import { HiStar, HiBadgeCheck, HiArrowDown, HiSparkles, HiHeart, HiPhone, HiCamera, HiEmojiHappy } from "react-icons/hi";
 
+interface Flavor {
+  name: string;
+  price: number;
+}
+
 interface MenuItem {
   _id: string;
   name: string;
@@ -26,6 +31,8 @@ interface MenuItem {
   image: string;
   featured: boolean;
   inStock: boolean;
+  hasFlavors?: boolean;
+  flavors?: Flavor[];
 }
 
 interface Feedback {

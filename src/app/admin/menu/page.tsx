@@ -6,6 +6,11 @@ import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiStar, HiMenu, HiPhotograph, HiArrowLeft } from "react-icons/hi";
 
+interface Flavor {
+  name: string;
+  price: number;
+}
+
 interface MenuItem {
   _id: string;
   name: string;
@@ -25,6 +30,8 @@ interface MenuItem {
   image: string;
   featured: boolean;
   inStock: boolean;
+  hasFlavors?: boolean;
+  flavors?: Flavor[];
 }
 
 export default function AdminMenuPage() {
@@ -59,6 +66,8 @@ export default function AdminMenuPage() {
     image: "",
     featured: false,
     inStock: true,
+    hasFlavors: false,
+    flavors: [] as { name: string; price: number }[],
   });
 
   useEffect(() => {
@@ -82,23 +91,20 @@ export default function AdminMenuPage() {
 
   const resetForm = () => {
     setForm({
-      name: "",
-      nameKN: "",
-      nameHI: "",
-      description: "",
-      descriptionKN: "",
-      descriptionHI: "",
+      name: "", nameKN: "", nameHI: "",
+      description: "", descriptionKN: "", descriptionHI: "",
       price: 0,
       pricingType: "per_piece",
       pricingLabel: "Per Piece",
       pricingLabelKN: "ಪ್ರತಿ ತುಂಡಿಗೆ",
       pricingLabelHI: "प्रति टुकड़ा",
       category: "Beverages",
-      categoryKN: "",
-      categoryHI: "",
+      categoryKN: "", categoryHI: "",
       image: "",
       featured: false,
       inStock: true,
+      hasFlavors: false,
+      flavors: [],
     });
     setEditingId(null);
     setShowForm(false);
@@ -130,26 +136,40 @@ export default function AdminMenuPage() {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.price) {
-      alert("Name and price are required");
+    if (!form.name) {
+      alert("Name is required");
+      return;
+    }
+    if (!form.hasFlavors && !form.price) {
+      alert("Price is required");
+      return;
+    }
+    if (form.hasFlavors && form.flavors.length === 0) {
+      alert("Add at least one flavor");
       return;
     }
 
     setSaving(true);
     setError("");
+    const payload = {
+      ...form,
+      price: form.hasFlavors && form.flavors.length > 0
+        ? Math.min(...form.flavors.map((f) => f.price))
+        : form.price,
+    };
     try {
       if (editingId) {
         const res = await fetch(`/api/menu/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error(res.statusText);
       } else {
         const res = await fetch("/api/menu", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error(res.statusText);
       }
@@ -180,6 +200,8 @@ export default function AdminMenuPage() {
       image: item.image || "",
       featured: item.featured,
       inStock: item.inStock,
+      hasFlavors: item.hasFlavors || false,
+      flavors: item.flavors || [],
     });
     setEditingId(item._id);
     setShowForm(true);
@@ -358,6 +380,63 @@ export default function AdminMenuPage() {
                 placeholder="Pricing label (Hindi)"
                 className="royal-input"
               />
+
+              <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.hasFlavors}
+                    onChange={(e) => setForm((f) => ({ ...f, hasFlavors: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-royal-gold rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-royal-gold"></div>
+                </label>
+                <span className="font-medium text-sm text-gray-700 dark:text-gray-300">Enable Flavors / Variants</span>
+              </div>
+
+              {form.hasFlavors && (
+                <div className="sm:col-span-2 lg:col-span-3 space-y-2">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Flavors & Prices</p>
+                  {form.flavors.map((f, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={f.name}
+                        onChange={(e) => {
+                          const updated = [...form.flavors];
+                          updated[idx] = { ...updated[idx], name: e.target.value };
+                          setForm((prev) => ({ ...prev, flavors: updated }));
+                        }}
+                        placeholder="Flavor name"
+                        className="royal-input flex-1"
+                      />
+                      <input
+                        type="number"
+                        value={f.price}
+                        onChange={(e) => {
+                          const updated = [...form.flavors];
+                          updated[idx] = { ...updated[idx], price: Number(e.target.value) };
+                          setForm((prev) => ({ ...prev, flavors: updated }));
+                        }}
+                        placeholder="Price"
+                        className="royal-input w-24"
+                      />
+                      <button
+                        onClick={() => setForm((prev) => ({ ...prev, flavors: prev.flavors.filter((_, i) => i !== idx) }))}
+                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                      >
+                        <HiX size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setForm((prev) => ({ ...prev, flavors: [...prev.flavors, { name: "", price: 0 }] }))}
+                    className="flex items-center gap-1 text-sm text-royal-gold font-bold hover:underline"
+                  >
+                    <HiPlus size={16} /> Add Flavor
+                  </button>
+                </div>
+              )}
 
               {/* Image Upload */}
               <div className="sm:col-span-2 lg:col-span-3">

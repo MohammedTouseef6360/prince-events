@@ -6,6 +6,11 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import { HiX, HiPlus, HiMinus, HiShoppingCart } from "react-icons/hi";
 
+interface Flavor {
+  name: string;
+  price: number;
+}
+
 interface ItemModalProps {
   item: {
     _id: string;
@@ -23,6 +28,8 @@ interface ItemModalProps {
     category: string;
     image: string;
     inStock: boolean;
+    hasFlavors?: boolean;
+    flavors?: Flavor[];
   };
   onClose: () => void;
 }
@@ -33,6 +40,11 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
   const [qty, setQty] = useState(1);
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
+  const [selectedFlavor, setSelectedFlavor] = useState<Flavor | null>(
+    item.hasFlavors && item.flavors?.length ? item.flavors[0] : null
+  );
+
+  const activePrice = selectedFlavor?.price ?? item.price;
 
   const displayName =
     lang === "kn" && item.nameKN ? item.nameKN :
@@ -50,14 +62,18 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
     item.pricingLabel;
 
   const handleAddToCart = () => {
+    const flavorName = selectedFlavor?.name || "";
+    const cartKey = item._id + (flavorName ? "|" + flavorName : "");
     addItem({
       id: item._id,
-      name: displayName,
-      price: item.price,
+      key: cartKey,
+      name: displayName + (flavorName ? ` (${flavorName})` : ""),
+      price: activePrice,
       qty,
       pricingType: item.pricingType,
       pricingLabel: displayPricingLabel,
       image: item.image,
+      flavor: flavorName || undefined,
     });
     setAdded(true);
     setTimeout(() => {
@@ -106,9 +122,27 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
             </p>
           )}
 
+          {item.hasFlavors && item.flavors && item.flavors.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Select Flavor</label>
+              <select
+                value={selectedFlavor?.name || ""}
+                onChange={(e) => {
+                  const f = item.flavors?.find((x) => x.name === e.target.value);
+                  if (f) setSelectedFlavor(f);
+                }}
+                className="w-full border border-royal-gold/30 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-royal-gold"
+              >
+                {item.flavors.map((f) => (
+                  <option key={f.name} value={f.name}>{f.name} - ₹{f.price}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 mb-4">
             <span className="text-3xl font-bold text-royal-maroon dark:text-royal-gold">
-              ₹{item.price}
+              ₹{activePrice}
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
               {displayPricingLabel}
@@ -154,7 +188,7 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
               {t("cart.total")}:
             </span>
             <span className="text-2xl font-bold text-royal-maroon dark:text-royal-gold">
-              ₹{item.price * qty}
+              ₹{activePrice * qty}
             </span>
           </div>
 

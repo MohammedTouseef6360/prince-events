@@ -6,6 +6,11 @@ import { useRealtime } from "@/lib/use-realtime";
 import ItemTile from "@/components/ItemTile";
 import { HiSearch, HiMenu, HiEmojiSad } from "react-icons/hi";
 
+interface Flavor {
+  name: string;
+  price: number;
+}
+
 interface MenuItem {
   _id: string;
   name: string;
@@ -25,6 +30,8 @@ interface MenuItem {
   image: string;
   featured: boolean;
   inStock: boolean;
+  hasFlavors?: boolean;
+  flavors?: Flavor[];
 }
 
 export default function MenuPage() {
