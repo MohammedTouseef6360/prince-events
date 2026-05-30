@@ -396,7 +396,7 @@ export default function AdminMenuPage() {
 
               {form.hasFlavors && (
                 <div className="sm:col-span-2 lg:col-span-3 space-y-2">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Flavors & Prices</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Flavors &amp; Prices</p>
                   {form.flavors.map((f, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
                       <input
