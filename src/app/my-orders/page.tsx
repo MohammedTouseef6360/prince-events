@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
@@ -100,9 +100,15 @@ export default function MyOrdersPage() {
     }
   }, []);
 
-  const fetchOrders = async (p: string) => {
+  useEffect(() => {
+    if (!phone) return;
+    const interval = setInterval(() => fetchOrders(phone, true), 3000);
+    return () => clearInterval(interval);
+  }, [phone]);
+
+  const fetchOrders = async (p: string, silent = false) => {
     if (!p) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setSearched(true);
     setError("");
     try {
@@ -110,11 +116,10 @@ export default function MyOrdersPage() {
       if (!res.ok) throw new Error("Failed to fetch orders. Please try again.");
       const data = await res.json();
       setOrders(data);
-    } catch (err: any) {
-      setError(err?.message || "Network error. Please check your connection.");
-      setOrders([]);
+    } catch {
+      if (!silent) setError("Network error. Please check your connection.");
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   };
 
   const handleSearch = (e: React.FormEvent) => {
