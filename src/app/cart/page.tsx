@@ -283,14 +283,30 @@ export default function CartPage() {
                     ₹{item.price} / {item.pricingLabel}
                   </p>
                 </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => updateQty(item.key, item.qty - 1)}
-
-                          updateQty(item.key, Math.max(1, v));
-
-                      onClick={() => updateQty(item.key, item.qty + 1)}
-
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => updateQty(item.key, item.qty - 1)}
+                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    <HiMinus size={16} />
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.qty}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value) || 1;
+                      updateQty(item.key, Math.max(1, v));
+                    }}
+                    className="w-12 text-center text-sm font-bold bg-transparent border border-gray-200 dark:border-gray-600 rounded py-1"
+                  />
+                  <button
+                    onClick={() => updateQty(item.key, item.qty + 1)}
+                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    <HiPlus size={16} />
+                  </button>
+                  <button
                     onClick={() => removeItem(item.key)}
                     className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-1"
                   >
