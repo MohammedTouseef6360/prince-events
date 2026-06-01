@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import { HiTrash, HiMinus, HiPlus, HiBadgeCheck, HiClipboardList, HiMenu, HiShoppingCart, HiSun, HiMoon, HiChat } from "react-icons/hi";
-import PDFDownload from "@/components/PDFDownload";
+import dynamic from "next/dynamic";
+const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
 
 export default function CartPage() {
   const { t } = useLanguage();
@@ -115,7 +116,7 @@ export default function CartPage() {
 
   if (orderPlaced) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center animate-fade-in">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-20 text-center animate-fade-in">
         <div className="max-w-lg mx-auto royal-card p-8 sm:p-12">
           {submitError && (
             <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg px-4 py-3 text-sm text-yellow-800 dark:text-yellow-200">
@@ -154,7 +155,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center animate-fade-in">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-20 text-center animate-fade-in">
         <div className="w-20 h-20 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-4">
           <HiShoppingCart className="text-royal-gold" size={40} />
         </div>
@@ -170,7 +171,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 animate-fade-in">
       <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold text-center mb-4 flex items-center justify-center gap-3">
         <HiShoppingCart size={32} />
         {t("cart.title")}
@@ -243,7 +244,7 @@ export default function CartPage() {
             </div>
 
             {/* Meal Type */}
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 -mb-2">Meal Type</p>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 -mb-2">Meal Type</p>
             <div className="flex gap-2">
               {["Breakfast", "Lunch", "Dinner"].map((meal) => (
                 <button
@@ -279,7 +280,7 @@ export default function CartPage() {
                   <p className="font-medium text-gray-800 dark:text-gray-200">
                     {item.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-600">
                     ₹{item.price} / {item.pricingLabel}
                   </p>
                 </div>
@@ -345,7 +346,7 @@ export default function CartPage() {
             <button
               onClick={handleSendWhatsApp}
               disabled={sending}
-              className="flex-1 bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+              className="royal-btn-accent flex-1"
             >
               <HiChat size={18} /> {t("cart.confirm_whatsapp")}
             </button>

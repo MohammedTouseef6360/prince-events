@@ -35,15 +35,15 @@ export default function Navbar() {
   if (!mounted) {
     return (
       <nav className="sticky top-0 z-40 bg-royal-maroon shadow-lg border-b-2 border-royal-gold">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16" />
+          <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 h-16" />
       </nav>
     );
   }
 
   return (
     <>
-      <nav className="sticky top-0 z-40 bg-royal-maroon dark:bg-gray-900 shadow-lg border-b-2 border-royal-gold">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="sticky top-0 z-40 bg-royal-maroon/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b-2 border-royal-gold">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               {showBackButton && (
@@ -57,7 +57,7 @@ export default function Navbar() {
               )}
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10"
+                className="text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10 active:scale-110 transition-all"
                 aria-label="Toggle menu"
               >
                 <HiMenu size={28} />
@@ -106,6 +106,13 @@ export default function Navbar() {
                     {totalItems}
                   </span>
                 )}
+              </Link>
+
+              <Link
+                href="/menu"
+                className="hidden sm:inline-flex bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-emerald-600/30 active:scale-95 min-h-[40px] items-center gap-1.5"
+              >
+                <HiFire size={16} /> Order Now
               </Link>
 
               <div className="sm:hidden relative">
@@ -180,7 +187,7 @@ export default function Navbar() {
 
         {/* Sidebar Content - Scrollable */}
         <div className="overflow-y-auto h-[calc(100%-8rem)] scrollbar-thin">
-          <div className="p-4 space-y-1">
+          <div className="p-5 space-y-2">
             <p className="text-xs font-bold uppercase tracking-wider text-royal-gold/60 dark:text-royal-gold/40 px-3 py-2">
               {t("sidebar.quick_links")}
             </p>
@@ -215,7 +222,7 @@ export default function Navbar() {
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiPhotograph className="text-royal-maroon dark:text-royal-gold" size={18} />
               </div>
-              <span>{t("sidebar.gallery")}</span>
+              <span>Our Gallery</span>
             </Link>
 
             <Link
@@ -246,16 +253,26 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <div className="px-4 py-2">
-            <div className="gold-divider my-2" />
-          </div>
+            <div className="px-4 pt-2">
+              <Link
+                href="/menu"
+                onClick={() => setSidebarOpen(false)}
+                className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-600/30 active:scale-95 min-h-[48px]"
+              >
+                <HiFire size={18} /> Order Now
+              </Link>
+            </div>
 
-          {/* About Section */}
+            <div className="px-4 py-2">
+              <div className="gold-divider my-2" />
+            </div>
+
+            {/* About Section */}
           <div className="px-6 pb-2">
             <h3 className="font-heading text-sm font-bold text-royal-maroon dark:text-royal-gold mb-2 uppercase tracking-wider">
               {t("sidebar.about")}
             </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
               {t("about.content")}
             </p>
           </div>
@@ -272,7 +289,7 @@ export default function Navbar() {
             <div className="space-y-2">
               <a
                 href={`tel:+${extractPhoneDigits(settings.phone)}`}
-                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-royal-gold/10 transition"
+                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-800 dark:text-gray-200 hover:bg-royal-gold/10 transition"
               >
                 <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                   <HiPhone className="text-green-600 dark:text-green-400" size={16} />
@@ -282,7 +299,7 @@ export default function Navbar() {
               <a
                 href={`https://wa.me/${extractPhoneDigits(settings.phone)}`}
                 target="_blank"
-                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-royal-gold/10 transition"
+                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-800 dark:text-gray-200 hover:bg-royal-gold/10 transition"
               >
                 <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                   <HiChat className="text-green-600 dark:text-green-400" size={16} />
@@ -292,14 +309,14 @@ export default function Navbar() {
               <a
                 href={`https://instagram.com/${settings.instagram}`}
                 target="_blank"
-                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-royal-gold/10 transition"
+                className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-800 dark:text-gray-200 hover:bg-royal-gold/10 transition"
               >
                 <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
                   <HiMail className="text-pink-600 dark:text-pink-400" size={16} />
                 </div>
                 <span>@{settings.instagram}</span>
               </a>
-              <div className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+              <div className="flex items-center gap-3 p-2 rounded-lg text-sm text-gray-800 dark:text-gray-200">
                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                   <HiLocationMarker className="text-blue-600 dark:text-blue-400" size={16} />
                 </div>

@@ -103,7 +103,7 @@ export default function AdminSettingsPage() {
               <h2 className="font-heading text-xl font-bold text-royal-maroon dark:text-royal-gold">
                 Business Settings
               </h2>
-              <p className="text-xs text-gray-500">Configure your business information</p>
+              <p className="text-xs text-gray-600">Configure your business information</p>
             </div>
           </div>
 

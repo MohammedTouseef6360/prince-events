@@ -22,7 +22,7 @@ export async function GET() {
     settings = DEFAULT_SETTINGS;
     await firebaseDb.settings.save(DEFAULT_SETTINGS);
   }
-  return NextResponse.json(settings);
+  return NextResponse.json(settings, { headers: { 'Cache-Control': 'public, max-age=60' } });
 }
 
 export async function POST(request: NextRequest) {

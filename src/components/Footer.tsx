@@ -11,8 +11,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-royal-maroon dark:bg-gray-900 text-royal-gold border-t-2 border-royal-gold/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
           <div>
             <h3 className="font-heading text-xl font-bold mb-3">{settings.businessName}</h3>
             <p className="text-royal-gold/80 text-sm leading-relaxed">

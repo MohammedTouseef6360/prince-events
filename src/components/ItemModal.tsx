@@ -144,7 +144,7 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
             <span className="text-3xl font-bold text-royal-maroon dark:text-royal-gold">
               ₹{activePrice}
             </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+            <span className="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
               {displayPricingLabel}
             </span>
           </div>

@@ -186,7 +186,7 @@ export default function AdminGalleryPage() {
             </div>
           ))}
           {images.length === 0 && (
-            <div className="col-span-full text-center py-12 text-gray-500">
+            <div className="col-span-full text-center py-12 text-gray-600">
               No images yet. Upload your first event photo!
             </div>
           )}

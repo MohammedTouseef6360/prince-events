@@ -552,9 +552,9 @@ export default function AdminMenuPage() {
                       </div>
                     </td>
                     <td className="p-3 font-medium">{item.name}</td>
-                    <td className="p-3 text-gray-500">{item.category}</td>
+                    <td className="p-3 text-gray-600">{item.category}</td>
                     <td className="p-3 font-bold">₹{item.price}</td>
-                    <td className="p-3 text-xs text-gray-500">{item.pricingLabel}</td>
+                    <td className="p-3 text-xs text-gray-600">{item.pricingLabel}</td>
                     <td className="p-3 text-center">
                         <button
                           onClick={() => handleQuickToggle(item._id, "featured", !item.featured)}
@@ -598,7 +598,7 @@ export default function AdminMenuPage() {
                 ))}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-gray-500">
+                    <td colSpan={8} className="p-8 text-center text-gray-600">
                       No menu items yet. Click "Add Item" to get started!
                     </td>
                   </tr>

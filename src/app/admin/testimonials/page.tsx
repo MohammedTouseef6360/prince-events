@@ -182,7 +182,7 @@ export default function AdminTestimonialsPage() {
             </div>
           ))}
           {testimonials.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-600">
               <HiHeart size={40} className="mx-auto mb-2 text-gray-300" />
               No testimonials yet. Add your first review!
             </div>

@@ -70,25 +70,15 @@ export default function HomePage() {
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setPageError("");
-    Promise.all([
-      fetch("/api/menu?featured=true").then((res) => {
-        if (!res.ok) throw new Error("Failed to load featured menu");
-        return res.json();
-      }),
-      fetch("/api/testimonials").then((res) => {
-        if (!res.ok) throw new Error("Failed to load testimonials");
-        return res.json();
-      }),
-    ])
-      .then(([menuData, fbData]) => {
-        setFeaturedItems(menuData);
-        setFeedbacks(fbData);
-      })
-      .catch((err) => setPageError(err?.message || "Something went wrong"))
-      .finally(() => setLoading(false));
+    if (realMenu.length > 0) setFeaturedItems(realMenu.filter((i) => i.featured));
+    if (realFeedback.length > 0) setFeedbacks(realFeedback);
+    if (realMenu.length > 0 || realFeedback.length > 0) setLoading(false);
+  }, [realMenu, realFeedback]);
 
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 6000);
     return () => {
+      clearTimeout(t);
       fbAbortRef.current?.abort();
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
@@ -147,22 +137,22 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.12),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,253,208,0.06),transparent_50%)]" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 mb-6 bg-white/10 backdrop-blur-sm border border-royal-gold/20 rounded-full px-5 py-2">
-              <HiSparkles className="text-royal-gold" size={16} />
+              <HiSparkles aria-hidden="true" className="text-royal-gold" size={16} />
               <span className="text-royal-gold text-sm font-medium tracking-wide">
                 {settings.address}
               </span>
             </div>
 
-            <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl font-bold mb-4 text-royal-gold leading-tight">
+            <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl font-bold mb-4 text-royal-gold leading-tight text-shadow-hero">
               {settings.heroTitle || t("home.hero_title")}
             </h1>
-            <p className="text-xl sm:text-2xl text-royal-gold-light font-heading italic mb-4 tracking-wide">
+            <p className="text-xl sm:text-2xl text-royal-gold-light font-heading italic mb-4 tracking-wide text-shadow-hero">
               &ldquo;{settings.heroSubtitle || t("home.hero_subtitle")}&rdquo;
             </p>
-            <p className="text-lg sm:text-xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
+            <p className="text-lg sm:text-xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed font-light text-shadow-sm">
               {lang === "kn" && settings.heroDescKN ? settings.heroDescKN : lang === "hi" && settings.heroDescHI ? settings.heroDescHI : settings.heroDesc || t("home.hero_desc")}
             </p>
 
@@ -191,8 +181,8 @@ export default function HomePage() {
 
       {/* ─── Featured Items ─── */}
       {loading ? (
-        <section id="featured-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center mb-12">
+        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
+          <div className="text-center mb-10 lg:mb-12">
             <div className="skeleton h-10 w-72 mx-auto mb-4 rounded-lg" />
             <div className="skeleton h-1 w-40 mx-auto rounded-full" />
           </div>
@@ -213,16 +203,16 @@ export default function HomePage() {
           </div>
         </section>
       ) : featuredItems.length > 0 && (
-        <section id="featured-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center mb-12">
+        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
+          <div className="text-center mb-10 lg:mb-12">
             <div className="inline-flex items-center gap-3 mb-3">
-              <HiSparkles className="text-royal-gold" size={28} />
+              <HiSparkles aria-hidden="true" className="text-royal-gold" size={28} />
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
                 {t("home.featured")}
               </h2>
-              <HiSparkles className="text-royal-gold" size={28} />
+              <HiSparkles aria-hidden="true" className="text-royal-gold" size={28} />
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md mx-auto">
               Carefully crafted selections for your special celebration
             </p>
             <div className="gold-divider max-w-xs mx-auto mt-6" />
@@ -235,8 +225,8 @@ export default function HomePage() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link href="/menu" className="royal-btn-gold inline-flex items-center gap-2 px-8 py-3 text-lg group">
-              <span>View Full Menu</span>
+            <Link href="/menu" className="royal-btn-accent inline-flex items-center gap-2 px-8 py-3 text-lg group">
+              <span>Explore Our Menu</span>
               <HiArrowDown className="group-hover:translate-x-1 transition-transform" size={18} />
             </Link>
           </div>
@@ -245,26 +235,26 @@ export default function HomePage() {
 
       {/* ─── Error Banner ─── */}
       {!loading && pageError && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
             <p className="text-red-600 dark:text-red-400 font-medium">{pageError}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Please try refreshing the page</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Please try refreshing the page</p>
           </div>
         </section>
       )}
 
       {/* ─── Feedback Section ─── */}
-      <section className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+      <section className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-12 lg:py-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+          <div className="text-center mb-10 lg:mb-12">
             <div className="inline-flex items-center gap-3 mb-3">
-              <HiHeart className="text-red-400" size={24} />
+              <HiHeart aria-hidden="true" className="text-red-400" size={24} />
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
                 {t("home.testimonials")}
               </h2>
-              <HiHeart className="text-red-400" size={24} />
+              <HiHeart aria-hidden="true" className="text-red-400" size={24} />
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
               Voices of couples who trusted us with their special day
             </p>
             <div className="gold-divider max-w-xs mx-auto mt-6" />
@@ -287,7 +277,7 @@ export default function HomePage() {
                 <span className="text-2xl font-bold text-royal-maroon dark:text-royal-gold">
                   {avgRating.toFixed(1)}
                 </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
                   ({feedbacks.length})
                 </span>
               </div>
@@ -408,7 +398,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Contact CTA ─── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-royal-maroon to-royal-maroon-dark p-8 sm:p-14 text-center shadow-2xl">
           <div className="absolute inset-0 opacity-[0.06] ornament" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.1),transparent_60%)]" />

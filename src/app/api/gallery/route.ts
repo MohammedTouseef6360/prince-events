@@ -3,7 +3,7 @@ import { firebaseDb } from "@/lib/firebase-db";
 
 export async function GET() {
   const items = await firebaseDb.gallery.find();
-  return NextResponse.json(items);
+  return NextResponse.json(items, { headers: { 'Cache-Control': 'public, max-age=60' } });
 }
 
 export async function POST(request: NextRequest) {

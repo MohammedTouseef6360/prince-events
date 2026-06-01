@@ -18,7 +18,7 @@
     "feedback_title": "Share Your Feedback",
     "feedback_name": "Your Name",
     "feedback_message": "Your Feedback",
-    "feedback_submit": "Submit Feedback",
+    "feedback_submit": "Share Your Feedback",
     "feedback_thanks": "Thank you for your feedback!",
     "feedback_placeholder": "Tell us about your experience with PRINCE EVENTS..."
   },
@@ -26,7 +26,7 @@
     "title": "Our Menu",
     "search": "Search items...",
     "all": "All",
-    "add_to_cart": "Add to Cart",
+    "add_to_cart": "Add to My Order",
     "out_of_stock": "Currently Unavailable",
     "no_items": "No items found",
     "price": "Price"
@@ -34,7 +34,7 @@
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is empty",
-    "browse_menu": "Browse Menu",
+    "browse_menu": "Browse Our Menu",
     "customer_info": "Customer Information",
     "name": "Full Name",
     "phone": "Phone Number",
@@ -47,7 +47,7 @@
     "subtotal": "Subtotal",
     "travel_charge": "Travel Charge",
     "total": "Total",
-    "confirm_whatsapp": "Confirm & Send via WhatsApp",
+    "confirm_whatsapp": "Order Now via WhatsApp",
     "remove": "Remove"
   },
   "gallery": {
@@ -117,7 +117,7 @@
     "delivered": "Delivered",
     "tracking": "Order Tracking",
     "enter_phone": "Enter your phone number to find orders",
-    "lookup": "Find My Orders",
+    "lookup": "Find Orders",
     "view_my_orders": "View My Orders",
     "order_placed_success": "Order Placed Successfully!",
     "we_will_contact": "We will contact you shortly to confirm.",

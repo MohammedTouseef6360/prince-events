@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
-import PDFDownload from "@/components/PDFDownload";
+import dynamic from "next/dynamic";
+const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
 import {
   HiCheck, HiCog, HiSearch, HiFilter, HiX,
   HiClock, HiShoppingBag, HiPhone, HiLocationMarker,
@@ -201,9 +202,9 @@ function AdminOrdersPage() {
     const q = searchQuery.toLowerCase();
     const matchSearch =
       !q ||
-      order.customerName.toLowerCase().includes(q) ||
-      order.phone.includes(q) ||
-      order.venue.toLowerCase().includes(q);
+      (order.customerName || "").toLowerCase().includes(q) ||
+      (order.phone || "").includes(q) ||
+      (order.venue || "").toLowerCase().includes(q);
     const matchDate = !dateFilter || order.date === dateFilter;
     return matchStatus && matchSearch && matchDate;
   }));
@@ -364,7 +365,7 @@ function AdminOrdersPage() {
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-20">
             <HiShoppingBag size={60} className="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
               {searchQuery ? "No orders match your search" : dateFilter ? "No orders on this date" : "No orders yet"}
             </p>
             {(searchQuery || dateFilter) && (
@@ -404,7 +405,7 @@ function AdminOrdersPage() {
                               {order.status.toUpperCase()}
                             </span>
                           </div>
-                          <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+                          <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
                             <span className="flex items-center gap-1">
                               <HiPhone size={12} />
                               {order.phone}
@@ -484,19 +485,19 @@ function AdminOrdersPage() {
                     <div className="px-5 pb-5 animate-slide-up border-t border-royal-gold/10">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 mb-4">
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                          <p className="text-xs text-gray-600 uppercase tracking-wider flex items-center gap-1">
                             <HiCalendar size={12} /> Event Date
                           </p>
                           <p className="font-medium text-gray-800 dark:text-gray-200">{order.date}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                          <p className="text-xs text-gray-600 uppercase tracking-wider flex items-center gap-1">
                             <HiClock size={12} /> Time
                           </p>
                           <p className="font-medium text-gray-800 dark:text-gray-200">{order.time} {order.mealType ? `· ${order.mealType}` : ""}</p>
                         </div>
                         <div className="col-span-2">
-                          <p className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                          <p className="text-xs text-gray-600 uppercase tracking-wider flex items-center gap-1">
                             <HiLocationMarker size={12} /> Venue
                           </p>
                           <p className="font-medium text-gray-800 dark:text-gray-200">{order.venue}</p>
@@ -507,7 +508,7 @@ function AdminOrdersPage() {
                       {editingOrder === order._id ? (
                         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl overflow-hidden">
                           <div className="p-2 flex items-center justify-between bg-gray-100 dark:bg-gray-800">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Editing Invoice Items</span>
+                            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Editing Invoice Items</span>
                             <button onClick={() => addEditItem()} className="text-xs bg-royal-gold text-royal-maroon font-bold px-3 py-1 rounded-lg hover:bg-royal-gold-light flex items-center gap-1">
                               <HiPlus size={12} /> Add Item
                             </button>
@@ -515,10 +516,10 @@ function AdminOrdersPage() {
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="bg-gray-100 dark:bg-gray-800">
-                                <th className="text-left px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Item</th>
-                                <th className="text-center px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Qty</th>
-                                <th className="text-right px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Rate</th>
-                                <th className="text-right px-2 py-2 text-xs text-gray-500 uppercase tracking-wider">Total</th>
+                                <th className="text-left px-2 py-2 text-xs text-gray-600 uppercase tracking-wider">Item</th>
+                                <th className="text-center px-2 py-2 text-xs text-gray-600 uppercase tracking-wider">Qty</th>
+                                <th className="text-right px-2 py-2 text-xs text-gray-600 uppercase tracking-wider">Rate</th>
+                                <th className="text-right px-2 py-2 text-xs text-gray-600 uppercase tracking-wider">Total</th>
                                 <th className="w-10"></th>
                               </tr>
                             </thead>
@@ -569,10 +570,10 @@ function AdminOrdersPage() {
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="bg-gray-100 dark:bg-gray-800">
-                                <th className="text-left px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Item</th>
-                                <th className="text-center px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Qty</th>
-                                <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Rate</th>
-                                <th className="text-right px-4 py-2.5 text-xs text-gray-500 uppercase tracking-wider">Total</th>
+                                <th className="text-left px-4 py-2.5 text-xs text-gray-600 uppercase tracking-wider">Item</th>
+                                <th className="text-center px-4 py-2.5 text-xs text-gray-600 uppercase tracking-wider">Qty</th>
+                                <th className="text-right px-4 py-2.5 text-xs text-gray-600 uppercase tracking-wider">Rate</th>
+                                <th className="text-right px-4 py-2.5 text-xs text-gray-600 uppercase tracking-wider">Total</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -595,7 +596,7 @@ function AdminOrdersPage() {
                       <div className="flex flex-col items-end mt-2 space-y-1">
                         {editingOrder === order._id ? (
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500">Travel Charge:</span>
+                            <span className="text-gray-600">Travel Charge:</span>
                             <input
                               type="number"
                               min="0"
@@ -605,7 +606,7 @@ function AdminOrdersPage() {
                             />
                           </div>
                         ) : order.travelCharge > 0 ? (
-                          <div className="text-sm text-gray-500">Travel Charge: +₹{order.travelCharge}</div>
+                          <div className="text-sm text-gray-600">Travel Charge: +₹{order.travelCharge}</div>
                         ) : null}
                         <div className="text-lg font-bold">
                           <span className="text-royal-maroon dark:text-royal-gold">
@@ -618,7 +619,7 @@ function AdminOrdersPage() {
 
                       {/* Invoice Section */}
                       <div className="mt-4 pt-4 border-t border-royal-gold/10">
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-bold">Invoice</p>
+                        <p className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-bold">Invoice</p>
                         <div className="flex flex-wrap items-center gap-2">
                           {editingOrder === order._id ? (
                             <>

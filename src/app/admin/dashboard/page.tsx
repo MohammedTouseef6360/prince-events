@@ -188,7 +188,7 @@ export default function AdminDashboardPage() {
                   <Icon size={20} />
                 </div>
                 <p className="text-2xl font-bold text-royal-maroon dark:text-royal-gold">{stat.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">{stat.label}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mt-1">{stat.label}</p>
               </div>
             );
           })}
@@ -213,7 +213,7 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-royal-maroon dark:text-royal-gold">{link.label}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{link.desc}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{link.desc}</p>
                       </div>
                       <HiArrowRight className="text-gray-300 group-hover:text-royal-gold group-hover:translate-x-1 transition-all" size={20} />
                     </Link>
@@ -249,7 +249,7 @@ export default function AdminDashboardPage() {
                   <HiCash className="text-royal-gold" size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Average Order Value</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Average Order Value</p>
                   <p className="text-2xl font-bold text-royal-maroon dark:text-royal-gold">₹{avgOrderValue.toFixed(0)}</p>
                 </div>
               </div>
@@ -318,7 +318,7 @@ export default function AdminDashboardPage() {
                   <HiUserGroup className="text-purple-600 dark:text-purple-400" size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Unique Customers</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Unique Customers</p>
                   <p className="text-2xl font-bold text-royal-maroon dark:text-royal-gold">
                     {new Set(orders.map((o) => o.phone)).size}
                   </p>

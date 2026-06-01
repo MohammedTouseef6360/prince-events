@@ -7,7 +7,7 @@ export async function GET(
 ) {
   const item = await firebaseDb.menu.findById(params.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(item);
+  return NextResponse.json(item, { headers: { 'Cache-Control': 'public, max-age=60' } });
 }
 
 export async function PUT(

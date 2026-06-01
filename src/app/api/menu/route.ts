@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const featured = searchParams.get("featured");
   let items = await firebaseDb.menu.find();
   if (featured === "true") items = items.filter((i: any) => i.featured);
-  return NextResponse.json(items);
+  return NextResponse.json(items, { headers: { 'Cache-Control': 'public, max-age=60' } });
 }
 
 export async function POST(request: NextRequest) {

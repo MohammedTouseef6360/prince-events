@@ -23,31 +23,13 @@ export default function GalleryPage() {
   const realImages = useRealtime<GalleryItem>("gallery");
 
   useEffect(() => {
-    if (realImages.length > 0) {
-      setImages(realImages);
-      setLoading(false);
-    }
+    if (realImages.length > 0) setImages(realImages);
+    setLoading(false);
   }, [realImages]);
 
-  useEffect(() => {
-    fetch("/api/gallery")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load gallery");
-        return res.json();
-      })
-      .then((data) => {
-        setImages(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err?.message || "Something went wrong");
-        setLoading(false);
-      });
-  }, []);
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-      <div className="text-center mb-8">
+    <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 lg:py-12 animate-fade-in">
+      <div className="text-center mb-10">
         <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold flex items-center justify-center gap-3">
           <HiPhotograph size={32} />
           {t("gallery.title")}
@@ -59,12 +41,12 @@ export default function GalleryPage() {
         <div className="text-center py-20">
           <HiPhotograph className="mx-auto mb-4 text-red-400" size={60} />
           <p className="text-red-500 dark:text-red-400 text-lg font-medium">{error}</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Please try refreshing the page</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Please try refreshing the page</p>
         </div>
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="royal-card overflow-hidden">
               <div className="skeleton h-64 w-full" />
@@ -77,10 +59,10 @@ export default function GalleryPage() {
       ) : images.length === 0 ? (
         <div className="text-center py-20">
           <HiPhotograph className="mx-auto text-6xl mb-4 text-royal-gold" />
-          <p className="text-gray-500 dark:text-gray-400">Gallery coming soon...</p>
+          <p className="text-gray-600 dark:text-gray-400">Gallery coming soon...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {images.map((img, i) => {
             const displayCaption =
               lang === "kn" && img.captionKN
@@ -110,7 +92,7 @@ export default function GalleryPage() {
                 </div>
                 {displayCaption && (
                   <div className="p-3">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                       {displayCaption}
                     </p>
                   </div>

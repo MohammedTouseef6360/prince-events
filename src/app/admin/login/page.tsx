@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
           <h1 className="font-heading text-2xl font-bold text-royal-maroon dark:text-royal-gold">
             {t("admin.login")}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             PRINCE EVENTS — Admin Panel
           </p>
         </div>

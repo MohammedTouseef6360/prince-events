@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
 import { useCart } from "@/context/CartContext";
-import PDFDownload from "@/components/PDFDownload";
+import dynamic from "next/dynamic";
+const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
 import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList, HiChat, HiRefresh } from "react-icons/hi";
 
 interface OrderItem {
@@ -106,7 +107,7 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     if (!phone) return;
-    const interval = setInterval(() => fetchOrders(phone, true), 3000);
+    const interval = setInterval(() => fetchOrders(phone, true), 10000);
     return () => clearInterval(interval);
   }, [phone]);
 
@@ -144,7 +145,7 @@ export default function MyOrdersPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8 py-8 animate-fade-in">
       <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold text-center mb-8 flex items-center justify-center gap-3">
         <HiClipboardList size={32} /> {t("my_orders.title")}
       </h1>
@@ -174,7 +175,7 @@ export default function MyOrdersPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="animate-spin w-10 h-10 border-4 border-royal-gold border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-500">Searching orders...</p>
+          <p className="text-gray-600">Searching orders...</p>
         </div>
       )}
 
@@ -213,23 +214,23 @@ export default function MyOrdersPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">{t("my_orders.customer")}</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.customer")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.customerName}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">{t("my_orders.phone")}</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.phone")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.phone}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">{t("my_orders.date")}</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.date")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.date}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">{t("my_orders.time")}</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.time")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.time}</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">{t("my_orders.venue")}</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.venue")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.venue}</p>
                   </div>
                 </div>
@@ -251,7 +252,7 @@ export default function MyOrdersPage() {
                     ))}
                   </div>
                   {order.travelCharge > 0 && (
-                    <div className="flex justify-between text-sm mt-2 text-gray-500">
+                    <div className="flex justify-between text-sm mt-2 text-gray-600">
                       <span>Travel Charge</span>
                       <span>+ ₹{order.travelCharge}</span>
                     </div>

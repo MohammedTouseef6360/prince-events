@@ -149,7 +149,7 @@ export default function EventCalendar({ orders, onDateClick }: EventCalendarProp
       </div>
 
       {/* Legend */}
-      <div className="px-4 pb-3 flex items-center gap-4 text-[10px] text-gray-500 border-t border-royal-gold/10 pt-2">
+      <div className="px-4 pb-3 flex items-center gap-4 text-[10px] text-gray-600 dark:text-gray-400 border-t border-royal-gold/10 pt-2">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-royal-gold" /> Orders
         </span>

@@ -22,7 +22,7 @@ export function useRealtime<T = any>(collection: string): T[] {
       } catch {}
     }
     fetchData();
-    intervalRef.current = setInterval(fetchData, 2000);
+    intervalRef.current = setInterval(fetchData, 30000);
     return () => {
       mounted.current = false;
       if (intervalRef.current) clearInterval(intervalRef.current);

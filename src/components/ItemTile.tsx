@@ -102,7 +102,7 @@ export default function ItemTile({ item }: ItemTileProps) {
             {displayName}
           </h3>
           {displayDesc && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-3">
               {displayDesc}
             </p>
           )}
@@ -110,7 +110,7 @@ export default function ItemTile({ item }: ItemTileProps) {
             <span className="text-royal-maroon dark:text-royal-gold font-bold text-lg">
               {showRange ? `₹${minPrice} - ₹${maxPrice}` : `₹${item.price}`}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+            <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
               {displayPricingLabel}
             </span>
           </div>
