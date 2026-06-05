@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   body {
@@ -14,6 +14,18 @@
     @apply font-heading;
   }
 
+  h1 {
+    @apply mb-8;
+  }
+
+  h2 {
+    @apply mb-6;
+  }
+
+  input, textarea, select {
+    font-size: 16px;
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
   }
@@ -23,7 +35,8 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-royal-maroon/40 rounded-full hover:bg-royal-maroon/60;
+    @apply bg-royal-maroon/40 rounded-full hover:bg-royal-maroon/60
+           dark:bg-royal-gold/30 dark:hover:bg-royal-gold/50;
   }
 }
 
@@ -61,25 +74,29 @@
   .royal-btn {
     @apply bg-royal-maroon text-white font-semibold py-3 px-6 rounded-xl
            hover:bg-royal-maroon-light hover:shadow-xl hover:-translate-y-0.5
-           transition-all duration-300 shadow-md active:scale-95 min-h-[48px];
+           transition-all duration-300 shadow-md active:scale-95 min-h-[48px] min-w-[48px]
+           dark:bg-royal-maroon-light dark:hover:bg-royal-maroon;
   }
 
   .royal-btn-gold {
     @apply bg-royal-gold text-royal-maroon font-bold py-3 px-6 rounded-xl
            hover:bg-royal-gold-light hover:shadow-xl hover:-translate-y-0.5
-           transition-all duration-300 shadow-md active:scale-95 min-h-[48px];
+           transition-all duration-300 shadow-md active:scale-95 min-h-[48px] min-w-[48px]
+           dark:text-royal-maroon;
   }
 
   .royal-btn-outline {
     @apply border-2 border-royal-gold text-royal-gold font-bold py-3 px-6 rounded-xl
            hover:bg-royal-gold hover:text-royal-maroon hover:shadow-xl hover:-translate-y-0.5
-           transition-all duration-300 active:scale-95 min-h-[48px];
+           transition-all duration-300 active:scale-95 min-h-[48px] min-w-[48px]
+           dark:hover:text-royal-maroon;
   }
 
   .royal-btn-accent {
     @apply bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl
            hover:bg-emerald-600 hover:shadow-xl hover:-translate-y-0.5 hover:shadow-emerald-600/30
-           transition-all duration-300 shadow-md active:scale-95 min-h-[48px] min-w-[48px];
+           transition-all duration-300 shadow-md active:scale-95 min-h-[48px] min-w-[48px]
+           dark:bg-emerald-800 dark:hover:bg-emerald-700;
   }
 
   .gold-divider {
@@ -220,6 +237,68 @@
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
+
+/* Desktop CTA scaling */
+@media (min-width: 1024px) {
+  .royal-btn:hover,
+  .royal-btn-gold:hover,
+  .royal-btn-accent:hover,
+  .royal-btn-outline:hover {
+    transform: scale(1.02) translateY(-2px);
+  }
+}
+
+/* Mobile full-width CTAs */
+@media (max-width: 639px) {
+  .mobile-full-cta {
+    width: 100%;
+    font-size: 1.125rem;
+    text-align: center;
+  }
+}
+
+/* Food loading animation */
+@keyframes bounce-food {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(-10deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-8px) rotate(10deg); }
+}
+
+@keyframes float-food {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50% { transform: translateY(-18px) scale(1.1); opacity: 1; }
+}
+
+@keyframes spin-plate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes chef-hat-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-8px) scale(1.05); }
+  60% { transform: translateY(-4px) scale(0.98); }
+}
+
+.animate-bounce-food {
+  animation: bounce-food 1.2s ease-in-out infinite;
+}
+
+.animate-float-delay-1 { animation: float-food 2s ease-in-out infinite; }
+.animate-float-delay-2 { animation: float-food 2s ease-in-out 0.2s infinite; }
+.animate-float-delay-3 { animation: float-food 2s ease-in-out 0.4s infinite; }
+.animate-float-delay-4 { animation: float-food 2s ease-in-out 0.6s infinite; }
+.animate-float-delay-5 { animation: float-food 2s ease-in-out 0.8s infinite; }
+
+.animate-spin-plate {
+  animation: spin-plate 2s linear infinite;
+}
+
+.animate-chef-hat {
+  animation: chef-hat-bounce 1.5s ease-in-out infinite;
+}
 
 /* Input focus glow */
 .royal-input:focus {

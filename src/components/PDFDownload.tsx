@@ -207,8 +207,8 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
         fillColor: [253, 251, 247] as [number, number, number],
       },
       columnStyles: {
-        0: { cellWidth: 80, halign: "left" },
-        1: { cellWidth: 20, halign: "center" },
+        0: { cellWidth: 72, halign: "left" },
+        1: { cellWidth: 18, halign: "center" },
         2: { cellWidth: 45, halign: "right" },
         3: { cellWidth: 35, halign: "right" },
       },

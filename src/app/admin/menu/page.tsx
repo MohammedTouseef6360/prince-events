@@ -209,21 +209,22 @@ export default function AdminMenuPage() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this menu item permanently?")) return;
+    const deletedItem = items.find((i) => i._id === id);
+    setItems((prev) => prev.filter((i) => i._id !== id));
     setDeleting(id);
     setError("");
     try {
       const res = await fetch(`/api/menu/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(res.statusText);
-      fetchItems();
     } catch (e) {
+      if (deletedItem) setItems((prev) => [...prev, deletedItem]);
       setError(e instanceof Error ? e.message : "Delete failed");
     }
     setDeleting(null);
   };
 
   const handleQuickToggle = async (id: string, field: string, value: boolean) => {
-    setToggling(id);
-    setError("");
+    setItems((prev) => prev.map((i) => (i._id === id ? { ...i, [field]: value } : i)));
     try {
       const res = await fetch(`/api/menu/${id}`, {
         method: "PUT",
@@ -231,11 +232,9 @@ export default function AdminMenuPage() {
         body: JSON.stringify({ [field]: value }),
       });
       if (!res.ok) throw new Error(res.statusText);
-      fetchItems();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Toggle failed");
+    } catch {
+      setItems((prev) => prev.map((i) => (i._id === id ? { ...i, [field]: !value } : i)));
     }
-    setToggling(null);
   };
 
   if (loading) {
@@ -558,23 +557,21 @@ export default function AdminMenuPage() {
                     <td className="p-3 text-center">
                         <button
                           onClick={() => handleQuickToggle(item._id, "featured", !item.featured)}
-                          disabled={toggling === item._id}
-                          className={`p-1.5 rounded-lg transition ${item.featured ? "text-royal-gold bg-royal-gold/10" : "text-gray-300 hover:text-royal-gold"} ${toggling === item._id ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`p-1.5 rounded-lg transition ${item.featured ? "text-royal-gold bg-royal-gold/10" : "text-gray-300 hover:text-royal-gold"}`}
                         >
-                          {toggling === item._id ? <div className="w-4 h-4 border-2 border-royal-gold border-t-transparent rounded-full animate-spin" /> : <HiStar size={18} />}
+                          <HiStar size={18} />
                         </button>
                     </td>
                     <td className="p-3 text-center">
                       <button
                         onClick={() => handleQuickToggle(item._id, "inStock", !item.inStock)}
-                        disabled={toggling === item._id}
-                        className={`text-sm px-2 py-1 rounded-full font-medium ${toggling === item._id ? "opacity-50 cursor-not-allowed" : ""} ${
+                        className={`text-sm px-2 py-1 rounded-full font-medium ${
                           item.inStock
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {toggling === item._id ? "..." : item.inStock ? "In Stock" : "Out"}
+                        {item.inStock ? "In Stock" : "Out"}
                       </button>
                     </td>
                     <td className="p-3">

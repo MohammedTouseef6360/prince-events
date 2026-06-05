@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useDarkMode } from "@/context/DarkModeContext";
 import { useSettings, extractPhoneDigits } from "@/lib/useSettings";
 import { HiMenu, HiX, HiShoppingCart, HiSun, HiMoon, HiArrowLeft, HiHome, HiFire, HiPhotograph, HiChat, HiMail, HiLocationMarker, HiPhone, HiClipboardList } from "react-icons/hi";
+
 
 const languages = [
   { code: "en", label: "EN" },
@@ -32,6 +33,16 @@ export default function Navbar() {
 
   const showBackButton = pathname !== "/" && !pathname.startsWith("/admin");
 
+  useEffect(() => {
+    const routes = ["/menu", "/gallery", "/cart", "/my-orders"];
+    routes.forEach(router.prefetch);
+    const t = setTimeout(() => {
+      fetch("/api/menu").catch(() => {});
+      fetch("/api/testimonials").catch(() => {});
+    }, 100);
+    return () => clearTimeout(t);
+  }, [router]);
+
   if (!mounted) {
     return (
       <nav className="sticky top-0 z-40 bg-royal-maroon shadow-lg border-b-2 border-royal-gold">
@@ -49,7 +60,7 @@ export default function Navbar() {
               {showBackButton && (
                 <button
                   onClick={() => router.back()}
-                  className="text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10 transition"
+                  className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[48px] min-w-[48px] flex items-center justify-center"
                   title={t("nav.back")}
                 >
                   <HiArrowLeft size={24} />
@@ -57,7 +68,7 @@ export default function Navbar() {
               )}
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10 active:scale-110 transition-all"
+                className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 active:scale-110 transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
                 aria-label="Toggle menu"
               >
                 <HiMenu size={28} />
@@ -89,7 +100,7 @@ export default function Navbar() {
 
               <button
                 onClick={toggleDarkMode}
-                className="text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10"
+                className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 min-h-[48px] min-w-[48px] flex items-center justify-center"
                 aria-label="Toggle dark mode"
               >
                 {darkMode ? <HiSun size={22} /> : <HiMoon size={22} />}
@@ -97,7 +108,7 @@ export default function Navbar() {
 
               <Link
                 href="/cart"
-                className="relative text-royal-gold hover:text-royal-gold-light p-2 rounded-lg hover:bg-white/10"
+                className="relative text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 min-h-[48px] min-w-[48px] flex items-center justify-center"
                 aria-label="View cart"
               >
                 <HiShoppingCart size={24} />
@@ -195,7 +206,7 @@ export default function Navbar() {
             <Link
               href="/"
               onClick={() => setSidebarOpen(false)}
-              className="sidebar-link group"
+              className={`sidebar-link group ${pathname === "/" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiHome className="text-royal-maroon dark:text-royal-gold" size={18} />
@@ -206,7 +217,7 @@ export default function Navbar() {
             <Link
               href="/menu"
               onClick={() => setSidebarOpen(false)}
-              className="sidebar-link group"
+              className={`sidebar-link group ${pathname === "/menu" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiFire className="text-royal-maroon dark:text-royal-gold" size={18} />
@@ -217,7 +228,7 @@ export default function Navbar() {
             <Link
               href="/gallery"
               onClick={() => setSidebarOpen(false)}
-              className="sidebar-link group"
+              className={`sidebar-link group ${pathname === "/gallery" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiPhotograph className="text-royal-maroon dark:text-royal-gold" size={18} />
@@ -228,7 +239,7 @@ export default function Navbar() {
             <Link
               href="/my-orders"
               onClick={() => setSidebarOpen(false)}
-              className="sidebar-link group"
+              className={`sidebar-link group ${pathname === "/my-orders" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiClipboardList className="text-royal-maroon dark:text-royal-gold" size={18} />
@@ -239,14 +250,14 @@ export default function Navbar() {
             <Link
               href="/cart"
               onClick={() => setSidebarOpen(false)}
-              className="sidebar-link group"
+              className={`sidebar-link group ${pathname === "/cart" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
                 <HiShoppingCart className="text-royal-maroon dark:text-royal-gold" size={18} />
               </div>
               <span>{t("nav.cart")}</span>
               {totalItems > 0 && (
-                <span className="ml-auto bg-royal-maroon text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="ml-auto bg-royal-maroon dark:bg-royal-gold dark:text-royal-maroon text-white text-xs px-2 py-0.5 rounded-full">
                   {totalItems}
                 </span>
               )}

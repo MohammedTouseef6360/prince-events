@@ -23,17 +23,17 @@ export default function Footer() {
             <h3 className="font-heading text-lg font-bold mb-3">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/menu" className="text-royal-gold/80 hover:text-royal-gold-light">
+                <Link href="/menu" className="text-royal-gold/80 hover:text-royal-gold-light block py-2 min-h-[48px] flex items-center">
                   {t("nav.menu")}
                 </Link>
               </li>
               <li>
-                <Link href="/gallery" className="text-royal-gold/80 hover:text-royal-gold-light">
+                <Link href="/gallery" className="text-royal-gold/80 hover:text-royal-gold-light block py-2 min-h-[48px] flex items-center">
                   {t("nav.gallery")}
                 </Link>
               </li>
               <li>
-                <Link href="/cart" className="text-royal-gold/80 hover:text-royal-gold-light">
+                <Link href="/cart" className="text-royal-gold/80 hover:text-royal-gold-light block py-2 min-h-[48px] flex items-center">
                   {t("nav.cart")}
                 </Link>
               </li>

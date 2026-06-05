@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useRealtime } from "@/lib/use-realtime";
 import ItemTile from "@/components/ItemTile";
 import { HiSearch, HiMenu, HiEmojiSad } from "react-icons/hi";
 
@@ -37,21 +36,19 @@ interface MenuItem {
 export default function MenuPage() {
   const { t, lang } = useLanguage();
   const [items, setItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const realItems = useRealtime<MenuItem>("menu");
+  const categories = Array.from(new Set(items.map((i) => i.category)));
 
   useEffect(() => {
-    if (realItems.length > 0) {
-      setItems(realItems);
-      const cats = Array.from(new Set(realItems.map((i) => i.category))) as string[];
-      setCategories(cats);
-    }
-    setLoading(false);
-  }, [realItems]);
+    const minTimer = setTimeout(() => setLoading(false), 3000);
+    fetch("/api/menu").then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setItems(d);
+      setLoading(false); clearTimeout(minTimer);
+    }).catch(() => setLoading(false));
+    return () => clearTimeout(minTimer);
+  }, []);
 
   const filtered = items.filter((item) => {
     const matchCategory =
@@ -115,31 +112,21 @@ export default function MenuPage() {
         ))}
       </div>
 
-      {/* Error */}
-      {!loading && error && (
-        <div className="text-center py-20">
-          <HiEmojiSad className="mx-auto mb-4 text-red-400" size={60} />
-          <p className="text-red-500 dark:text-red-400 text-lg font-medium">{error}</p>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Please try refreshing the page</p>
-        </div>
-      )}
-
       {/* Items Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="royal-card overflow-hidden">
-              <div className="skeleton h-48 w-full" />
-              <div className="p-4 space-y-3">
-                <div className="skeleton h-6 w-3/4" />
-                <div className="skeleton h-4 w-full" />
-                <div className="flex justify-between">
-                  <div className="skeleton h-6 w-20" />
-                  <div className="skeleton h-6 w-24 rounded-full" />
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="relative w-24 h-24 mb-6">
+            <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
+            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
+          </div>
+          <div className="flex gap-3 text-3xl mb-4">
+            <span className="animate-float-delay-1">🍕</span>
+            <span className="animate-float-delay-2">🍔</span>
+            <span className="animate-float-delay-3">🌮</span>
+            <span className="animate-float-delay-4">🥗</span>
+            <span className="animate-float-delay-5">🍰</span>
+          </div>
+          <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Loading Menu...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
@@ -147,9 +134,9 @@ export default function MenuPage() {
           <p className="text-gray-600 dark:text-gray-400 text-lg">{t("menu.no_items")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filtered.map((item) => (
-            <div key={item._id} className="animate-fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          {filtered.map((item, i) => (
+            <div key={item._id} className="animate-scale-in" style={{ animationDelay: `${(i % 8) * 50}ms` }}>
               <ItemTile item={item} />
             </div>
           ))}

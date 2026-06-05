@@ -51,6 +51,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
         <link rel="apple-touch-startup-image" href="/icons/icon-512.svg" />
+        <script dangerouslySetInnerHTML={{ __html: `if(localStorage.getItem("prince-events-darkmode")==="true")document.documentElement.classList.add("dark")` }} />
       </head>
       <body>
         <script

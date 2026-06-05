@@ -39,7 +39,7 @@ export default function CartPage() {
     msg += `Phone: ${phone}\n`;
     msg += `Wedding Date: ${date}\n`;
     msg += `Venue: ${venue}\n`;
-    msg += `Time: ${time} ${amPm}\n`;
+    msg += `Time: ${time}\n`;
     msg += `Meal: ${mealType}\n\n`;
     msg += `Order Summary:\n`;
     msg += `─────────────────\n`;
@@ -81,8 +81,8 @@ export default function CartPage() {
           phone,
           date,
           venue,
-          time: `${time} ${amPm}`,
-          mealType,
+        time: `${time}`,
+        mealType,
           items: items.map((i) => ({
             itemName: i.name,
             qty: i.qty,
@@ -287,7 +287,7 @@ export default function CartPage() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => updateQty(item.key, item.qty - 1)}
-                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                    className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
                     <HiMinus size={16} />
                   </button>
@@ -299,17 +299,17 @@ export default function CartPage() {
                       const v = parseInt(e.target.value) || 1;
                       updateQty(item.key, Math.max(1, v));
                     }}
-                    className="w-12 text-center text-sm font-bold bg-transparent border border-gray-200 dark:border-gray-600 rounded py-1"
+                    className="w-14 text-center text-sm font-bold bg-transparent border border-gray-200 dark:border-gray-600 rounded py-2"
                   />
                   <button
                     onClick={() => updateQty(item.key, item.qty + 1)}
-                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                    className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
                     <HiPlus size={16} />
                   </button>
                   <button
                     onClick={() => removeItem(item.key)}
-                    className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-1"
+                    className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-1"
                   >
                     <HiTrash size={16} />
                   </button>
@@ -346,7 +346,7 @@ export default function CartPage() {
             <button
               onClick={handleSendWhatsApp}
               disabled={sending}
-              className="royal-btn-accent flex-1"
+              className="royal-btn-accent mobile-full-cta flex-1"
             >
               <HiChat size={18} /> {t("cart.confirm_whatsapp")}
             </button>
@@ -356,7 +356,7 @@ export default function CartPage() {
                 phone,
                 date,
                 venue,
-                time: `${time} ${amPm}`,
+                time: `${time}`,
                 mealType,
                 items: items.map((i) => ({
                   name: i.name,

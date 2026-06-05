@@ -1,37 +1,58 @@
 const DB_URL = process.env.FIREBASE_DATABASE_URL || "https://prince-events-8bb83-default-rtdb.firebaseio.com";
 
+async function fireFetch(url: string, options?: RequestInit) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(t);
+    if (!res.ok) throw new Error(`Firebase ${res.status}: ${res.statusText}`);
+    return await res.json();
+  } catch (e) {
+    clearTimeout(t);
+    throw e;
+  }
+}
+
 async function getList(collection: string) {
-  const res = await fetch(`${DB_URL}/${collection}.json`);
-  const data = await res.json();
-  if (!data) return [];
-  return Object.entries(data).map(([key, val]: [string, any]) => ({ _id: key, ...val }));
+  try {
+    const data = await fireFetch(`${DB_URL}/${collection}.json`);
+    if (!data) return [];
+    return Object.entries(data).map(([key, val]: [string, any]) => ({ _id: key, ...val }));
+  } catch { return []; }
 }
 
 async function getOne(collection: string, id: string) {
-  const res = await fetch(`${DB_URL}/${collection}/${id}.json`);
-  const data = await res.json();
-  if (!data) return null;
-  return { _id: id, ...data };
+  try {
+    const data = await fireFetch(`${DB_URL}/${collection}/${id}.json`);
+    if (!data) return null;
+    return { _id: id, ...data };
+  } catch { return null; }
 }
 
 async function addOne(collection: string, data: any) {
-  const res = await fetch(`${DB_URL}/${collection}.json`, {
-    method: "POST", body: JSON.stringify({ ...data, createdAt: new Date().toISOString() }),
-  });
-  const result = await res.json();
-  return { _id: result.name, ...data, createdAt: new Date().toISOString() };
+  try {
+    const result = await fireFetch(`${DB_URL}/${collection}.json`, {
+      method: "POST", body: JSON.stringify({ ...data, createdAt: new Date().toISOString() }),
+    });
+    return { _id: result.name, ...data, createdAt: new Date().toISOString() };
+  } catch { return null; }
 }
 
 async function setOne(collection: string, id: string, data: any) {
-  await fetch(`${DB_URL}/${collection}/${id}.json`, { method: "PUT", body: JSON.stringify(data) });
-  return { _id: id, ...data };
+  try {
+    await fireFetch(`${DB_URL}/${collection}/${id}.json`, { method: "PUT", body: JSON.stringify(data) });
+    return { _id: id, ...data };
+  } catch { return null; }
 }
 
 async function removeOne(collection: string, id: string) {
-  const old = await getOne(collection, id);
-  if (!old) return null;
-  await fetch(`${DB_URL}/${collection}/${id}.json`, { method: "DELETE" });
-  return old;
+  try {
+    const old = await getOne(collection, id);
+    if (!old) return null;
+    await fireFetch(`${DB_URL}/${collection}/${id}.json`, { method: "DELETE" });
+    return old;
+  } catch { return null; }
 }
 
 async function findSettings() {

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { useRealtime } from "@/lib/use-realtime";
 import { HiX, HiPhotograph, HiSearch } from "react-icons/hi";
 
 interface GalleryItem {
@@ -20,12 +19,15 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<GalleryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const realImages = useRealtime<GalleryItem>("gallery");
 
   useEffect(() => {
-    if (realImages.length > 0) setImages(realImages);
-    setLoading(false);
-  }, [realImages]);
+    const minTimer = setTimeout(() => setLoading(false), 3000);
+    fetch("/api/gallery").then(r => r.json()).then(d => {
+      if (Array.isArray(d)) setImages(d);
+      setLoading(false); clearTimeout(minTimer);
+    }).catch(() => { setError("Failed to load gallery"); setLoading(false); });
+    return () => clearTimeout(minTimer);
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 lg:py-12 animate-fade-in">
@@ -46,15 +48,19 @@ export default function GalleryPage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="royal-card overflow-hidden">
-              <div className="skeleton h-64 w-full" />
-              <div className="p-3">
-                <div className="skeleton h-4 w-3/4" />
-              </div>
-            </div>
-          ))}
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="relative w-24 h-24 mb-6">
+            <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
+            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
+          </div>
+          <div className="flex gap-3 text-3xl mb-4">
+            <span className="animate-float-delay-1">🍕</span>
+            <span className="animate-float-delay-2">🍔</span>
+            <span className="animate-float-delay-3">🌮</span>
+            <span className="animate-float-delay-4">🥗</span>
+            <span className="animate-float-delay-5">🍰</span>
+          </div>
+          <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Loading Gallery...</p>
         </div>
       ) : images.length === 0 ? (
         <div className="text-center py-20">
@@ -62,7 +68,7 @@ export default function GalleryPage() {
           <p className="text-gray-600 dark:text-gray-400">Gallery coming soon...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {images.map((img, i) => {
             const displayCaption =
               lang === "kn" && img.captionKN

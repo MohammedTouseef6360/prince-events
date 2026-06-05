@@ -45,9 +45,10 @@ interface Feedback {
 export default function HomePage() {
   const { t, lang } = useLanguage();
   const { settings } = useSettings();
-  const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
+  const realMenu = useRealtime<MenuItem>("menu");
+  const realFeedback = useRealtime<Feedback>("testimonials");
+  const featuredItems = realMenu.filter((i) => i.featured);
+  const feedbacks = realFeedback;
   const [fbName, setFbName] = useState("");
   const [fbMessage, setFbMessage] = useState("");
   const [fbRating, setFbRating] = useState(5);
@@ -55,30 +56,11 @@ export default function HomePage() {
   const [fbSending, setFbSending] = useState(false);
   const [fbError, setFbError] = useState("");
   const [pageError, setPageError] = useState("");
-  const realMenu = useRealtime<MenuItem>("menu");
-  const realFeedback = useRealtime<Feedback>("testimonials");
-
-  useEffect(() => {
-    if (realMenu.length > 0) setFeaturedItems(realMenu.filter((i) => i.featured));
-  }, [realMenu]);
-
-  useEffect(() => {
-    if (realFeedback.length > 0) setFeedbacks(realFeedback);
-  }, [realFeedback]);
-
   const fbAbortRef = useRef<AbortController | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (realMenu.length > 0) setFeaturedItems(realMenu.filter((i) => i.featured));
-    if (realFeedback.length > 0) setFeedbacks(realFeedback);
-    if (realMenu.length > 0 || realFeedback.length > 0) setLoading(false);
-  }, [realMenu, realFeedback]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 6000);
     return () => {
-      clearTimeout(t);
       fbAbortRef.current?.abort();
       if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
     };
@@ -105,10 +87,6 @@ export default function HomePage() {
       setFbMessage("");
       setFbRating(5);
       successTimeoutRef.current = setTimeout(() => setFbSubmitted(false), 5000);
-      const res2 = await fetch("/api/testimonials", { signal: controller.signal });
-      if (!res2.ok) throw new Error("Failed to refresh");
-      const data = await res2.json();
-      setFeedbacks(data);
     } catch (err: any) {
       if (err?.name !== "AbortError") {
         setFbError(err?.message || "Something went wrong. Please try again.");
@@ -180,31 +158,9 @@ export default function HomePage() {
       </section>
 
       {/* ─── Featured Items ─── */}
-      {loading ? (
-        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <div className="text-center mb-10 lg:mb-12">
-            <div className="skeleton h-10 w-72 mx-auto mb-4 rounded-lg" />
-            <div className="skeleton h-1 w-40 mx-auto rounded-full" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="royal-card overflow-hidden">
-                <div className="skeleton h-52 w-full" />
-                <div className="p-5 space-y-3">
-                  <div className="skeleton h-6 w-3/4" />
-                  <div className="skeleton h-4 w-full" />
-                  <div className="flex justify-between">
-                    <div className="skeleton h-6 w-20" />
-                    <div className="skeleton h-6 w-24 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : featuredItems.length > 0 && (
-        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <div className="text-center mb-10 lg:mb-12">
+      {featuredItems.length > 0 && (
+        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20 animate-slide-up">
+          <div className="text-center mb-8 sm:mb-10 lg:mb-12">
             <div className="inline-flex items-center gap-3 mb-3">
               <HiSparkles aria-hidden="true" className="text-royal-gold" size={28} />
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
@@ -217,15 +173,15 @@ export default function HomePage() {
             </p>
             <div className="gold-divider max-w-xs mx-auto mt-6" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredItems.slice(0, 6).map((item, i) => (
-              <div key={item._id} className={`animate-card-enter stagger-${i + 1}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {featuredItems.slice(0, 6).map((item) => (
+              <div key={item._id} className="animate-scale-in">
                 <ItemTile item={item} />
               </div>
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link href="/menu" className="royal-btn-accent inline-flex items-center gap-2 px-8 py-3 text-lg group">
+            <Link href="/menu" className="royal-btn-accent mobile-full-cta inline-flex items-center gap-2 px-8 py-3 text-lg group">
               <span>Explore Our Menu</span>
               <HiArrowDown className="group-hover:translate-x-1 transition-transform" size={18} />
             </Link>
@@ -234,7 +190,7 @@ export default function HomePage() {
       )}
 
       {/* ─── Error Banner ─── */}
-      {!loading && pageError && (
+      {pageError && (
         <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
             <p className="text-red-600 dark:text-red-400 font-medium">{pageError}</p>
@@ -244,9 +200,9 @@ export default function HomePage() {
       )}
 
       {/* ─── Feedback Section ─── */}
-      <section className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-12 lg:py-20">
+      <section className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-8 sm:py-12 lg:py-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 lg:mb-12">
+          <div className="text-center mb-8 sm:mb-10 lg:mb-12">
             <div className="inline-flex items-center gap-3 mb-3">
               <HiHeart aria-hidden="true" className="text-red-400" size={24} />
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
@@ -365,7 +321,7 @@ export default function HomePage() {
 
           {/* Feedback Display */}
           {feedbacks.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {feedbacks.map((fb) => (
                 <div key={fb._id} className="royal-card p-6 text-center hover:-translate-y-2 transition-all duration-300">
                   <div className="w-14 h-14 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-4">
@@ -398,7 +354,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── Contact CTA ─── */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 lg:py-20">
+      <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-royal-maroon to-royal-maroon-dark p-8 sm:p-14 text-center shadow-2xl">
           <div className="absolute inset-0 opacity-[0.06] ornament" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.1),transparent_60%)]" />
@@ -415,7 +371,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href={`tel:+${settings.phone.replace(/\D/g, "")}`}
-                className="bg-royal-gold text-royal-maroon font-bold py-3 px-8 rounded-xl hover:bg-royal-gold-light hover:-translate-y-0.5 transition-all shadow-lg flex items-center gap-3"
+                className="mobile-full-cta bg-royal-gold text-royal-maroon font-bold py-3 px-8 rounded-xl hover:bg-royal-gold-light hover:-translate-y-0.5 transition-all shadow-lg flex items-center justify-center gap-3"
               >
                 <HiPhone size={20} />
                 {settings.phone}
@@ -423,7 +379,7 @@ export default function HomePage() {
               <a
                 href={`https://instagram.com/${settings.instagram}`}
                 target="_blank"
-                className="border-2 border-royal-gold/50 text-royal-gold font-bold py-3 px-8 rounded-xl hover:bg-royal-gold hover:text-royal-maroon hover:-translate-y-0.5 transition-all flex items-center gap-3"
+                className="mobile-full-cta border-2 border-royal-gold/50 text-royal-gold font-bold py-3 px-8 rounded-xl hover:bg-royal-gold hover:text-royal-maroon hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3"
               >
                 <HiCamera size={20} />
                 @{settings.instagram}

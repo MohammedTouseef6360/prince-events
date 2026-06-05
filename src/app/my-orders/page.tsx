@@ -135,13 +135,14 @@ export default function MyOrdersPage() {
 
   const formatDate = (d: string) => {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(d);
+      if (isNaN(date.getTime())) return d;
+      return date.toLocaleDateString("en-IN", {
+        year: "numeric", month: "short", day: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+    } catch { return d; }
   };
 
   return (
@@ -173,9 +174,12 @@ export default function MyOrdersPage() {
       </form>
 
       {loading && (
-        <div className="text-center py-12">
-          <div className="animate-spin w-10 h-10 border-4 border-royal-gold border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Searching orders...</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="relative w-20 h-20 mb-4">
+            <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
+            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
+          </div>
+          <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Searching orders...</p>
         </div>
       )}
 
@@ -201,12 +205,12 @@ export default function MyOrdersPage() {
         <div className="space-y-6">
           {orders.map((order) => (
             <div key={order._id} className="royal-card overflow-hidden">
-              <div className={`px-4 sm:px-6 py-3 flex items-center justify-between text-white ${statusColors[order.status]}`}>
+              <div className={`px-4 sm:px-6 py-3 flex items-center justify-between text-white ${statusColors[order?.status] || "bg-gray-500"}`}>
                 <span className="font-bold text-sm sm:text-base">
-                  #{order._id.slice(-6)}
+                  #{order?._id?.slice(-6) || "N/A"}
                 </span>
                 <span className="text-xs sm:text-sm opacity-90">
-                  {formatDate(order.createdAt)}
+                  {formatDate(order?.createdAt)}
                 </span>
               </div>
               <div className="p-4 sm:p-6">
