@@ -300,8 +300,6 @@
   animation: chef-hat-bounce 1.5s ease-in-out infinite;
 }
 
-.prince-events-build-2026 { display: none; }
-
 /* Input focus glow */
 .royal-input:focus {
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);

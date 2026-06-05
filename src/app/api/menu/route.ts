@@ -9,7 +9,7 @@ function getCache() {
 function setCache(data: any) {
   (globalThis as any).__menuCache = { data, ts: Date.now() };
 }
-export function bustMenuCache() {
+function bustCache() {
   (globalThis as any).__menuCache = null;
 }
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const item = await firebaseDb.menu.create(data);
-    bustMenuCache();
+    bustCache();
     return NextResponse.json(item, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Failed to create item" }, { status: 500 });
