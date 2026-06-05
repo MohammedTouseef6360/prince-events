@@ -34,7 +34,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const routes = ["/menu", "/gallery", "/cart", "/my-orders"];
-    routes.forEach(router.prefetch);
+    routes.forEach((r) => router.prefetch(r));
     const t = setTimeout(() => {
       fetch("/api/menu").catch(() => {});
       fetch("/api/testimonials").catch(() => {});
