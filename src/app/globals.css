@@ -292,13 +292,15 @@
 .animate-float-delay-4 { animation: float-food 2s ease-in-out 0.6s infinite; }
 .animate-float-delay-5 { animation: float-food 2s ease-in-out 0.8s infinite; }
 
-.animate-spin-plate {
+  .animate-spin-plate {
   animation: spin-plate 2s linear infinite;
 }
 
 .animate-chef-hat {
   animation: chef-hat-bounce 1.5s ease-in-out infinite;
 }
+
+.prince-events-build-2026 { display: none; }
 
 /* Input focus glow */
 .royal-input:focus {
