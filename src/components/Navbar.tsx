@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
@@ -8,7 +8,6 @@ import { useCart } from "@/context/CartContext";
 import { useDarkMode } from "@/context/DarkModeContext";
 import { useSettings, extractPhoneDigits } from "@/lib/useSettings";
 import { HiMenu, HiX, HiShoppingCart, HiSun, HiMoon, HiArrowLeft, HiHome, HiFire, HiPhotograph, HiChat, HiMail, HiLocationMarker, HiPhone, HiClipboardList } from "react-icons/hi";
-
 
 const languages = [
   { code: "en", label: "EN" },
