@@ -25,6 +25,13 @@ export default function AdminSettingsPage() {
     heroDesc: "",
     heroDescKN: "",
     heroDescHI: "",
+    gstin: "",
+    fssai: "",
+    registeredAddress: "",
+    bankName: "",
+    accountNumber: "",
+    ifsc: "",
+    upiId: "",
   });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -248,6 +255,84 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, aboutUsHI: e.target.value }))}
                 className="royal-input h-24 resize-none"
               />
+            </div>
+          </div>
+
+          {/* Tax & Bank Details */}
+          <div className="mt-8 mb-6 pt-6 border-t border-royal-gold/10">
+            <h3 className="font-heading text-lg font-bold text-royal-maroon dark:text-royal-gold mb-4">
+              Tax & Bank Details
+            </h3>
+            <p className="text-xs text-gray-600 mb-5">These details appear on the invoice PDF</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">GSTIN</label>
+                <input
+                  type="text"
+                  value={form.gstin}
+                  onChange={(e) => setForm((f) => ({ ...f, gstin: e.target.value }))}
+                  className="royal-input"
+                  placeholder="29ABCDE1234F1Z5"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">FSSAI License</label>
+                <input
+                  type="text"
+                  value={form.fssai}
+                  onChange={(e) => setForm((f) => ({ ...f, fssai: e.target.value }))}
+                  className="royal-input"
+                  placeholder="12345678901234"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Registered Address</label>
+                <textarea
+                  value={form.registeredAddress}
+                  onChange={(e) => setForm((f) => ({ ...f, registeredAddress: e.target.value }))}
+                  className="royal-input h-16 resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Bank Name</label>
+                <input
+                  type="text"
+                  value={form.bankName}
+                  onChange={(e) => setForm((f) => ({ ...f, bankName: e.target.value }))}
+                  className="royal-input"
+                  placeholder="State Bank of India"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Account Number</label>
+                <input
+                  type="text"
+                  value={form.accountNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
+                  className="royal-input"
+                  placeholder="12345678901"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">IFSC Code</label>
+                <input
+                  type="text"
+                  value={form.ifsc}
+                  onChange={(e) => setForm((f) => ({ ...f, ifsc: e.target.value }))}
+                  className="royal-input"
+                  placeholder="SBIN0001234"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">UPI ID</label>
+                <input
+                  type="text"
+                  value={form.upiId}
+                  onChange={(e) => setForm((f) => ({ ...f, upiId: e.target.value }))}
+                  className="royal-input"
+                  placeholder="princeevents@upi"
+                />
+              </div>
             </div>
           </div>
 

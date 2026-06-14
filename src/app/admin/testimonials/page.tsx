@@ -12,6 +12,9 @@ export default function AdminTestimonialsPage() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState(5);
+  const [photo, setPhoto] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [customEventType, setCustomEventType] = useState("");
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -46,12 +49,15 @@ export default function AdminTestimonialsPage() {
       const res = await fetch("/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, message, rating }),
+        body: JSON.stringify({ name, message, rating, photo, eventType: eventType === "Custom" ? customEventType : eventType }),
       });
       if (!res.ok) throw new Error(res.statusText);
       setName("");
       setMessage("");
       setRating(5);
+      setPhoto("");
+      setEventType("");
+      setCustomEventType("");
       fetchTestimonials();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to add testimonial");
@@ -138,6 +144,34 @@ export default function AdminTestimonialsPage() {
                 </button>
               ))}
             </div>
+            <input
+              type="text"
+              value={photo}
+              onChange={(e) => setPhoto(e.target.value)}
+              placeholder="Photo URL (optional)"
+              className="royal-input"
+            />
+            <select
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="royal-input"
+            >
+              <option value="">Select event type (optional)</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Custom">Custom</option>
+            </select>
+            {eventType === "Custom" && (
+              <input
+                type="text"
+                value={customEventType}
+                onChange={(e) => setCustomEventType(e.target.value)}
+                placeholder="Enter custom event type"
+                className="royal-input"
+              />
+            )}
             <button onClick={handleAdd} disabled={adding} className="royal-btn flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
               {adding ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <HiPlus size={20} />}
               {adding ? "Adding..." : "Add Testimonial"}
@@ -150,8 +184,12 @@ export default function AdminTestimonialsPage() {
             <div key={t._id} className="royal-card p-5 flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1">
-                  <div className="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center">
-                    <HiEmojiHappy className="text-royal-gold" size={18} />
+                  <div className="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center overflow-hidden">
+                    {t.photo ? (
+                      <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <HiEmojiHappy className="text-royal-gold" size={18} />
+                    )}
                   </div>
                   <div>
                     <span className="font-bold text-royal-maroon dark:text-royal-gold">
@@ -171,6 +209,11 @@ export default function AdminTestimonialsPage() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 ml-13">
                   &ldquo;{t.message}&rdquo;
                 </p>
+                {t.eventType && (
+                  <span className="inline-block mt-2 ml-13 text-xs font-medium text-royal-gold bg-royal-gold/10 px-2 py-0.5 rounded-full">
+                    {t.eventType}
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => handleDelete(t._id)}

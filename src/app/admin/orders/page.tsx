@@ -27,6 +27,7 @@ interface Order {
   venue: string;
   time: string;
   mealType?: string;
+  note?: string;
   items: OrderItem[];
   travelCharge: number;
   subtotal: number;
@@ -496,6 +497,12 @@ function AdminOrdersPage() {
                           </p>
                           <p className="font-medium text-gray-800 dark:text-gray-200">{order.time} {order.mealType ? `· ${order.mealType}` : ""}</p>
                         </div>
+                        {order.note && (
+                          <div className="col-span-2 sm:col-span-4">
+                            <p className="text-xs text-gray-600 uppercase tracking-wider flex items-center gap-1">Note</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-200 italic">{order.note}</p>
+                          </div>
+                        )}
                         <div className="col-span-2">
                           <p className="text-xs text-gray-600 uppercase tracking-wider flex items-center gap-1">
                             <HiLocationMarker size={12} /> Venue
@@ -653,6 +660,7 @@ function AdminOrdersPage() {
                                   date: order.date,
                                   venue: order.venue,
                                   time: order.time,
+                                  note: order.note,
                                   items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
                                   subtotal: order.subtotal,
                                   travelCharge: order.travelCharge,

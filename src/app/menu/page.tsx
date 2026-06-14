@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import ItemTile from "@/components/ItemTile";
-import { HiSearch, HiMenu, HiEmojiSad } from "react-icons/hi";
+import { HiSearch, HiEmojiSad, HiFire } from "react-icons/hi";
 
 interface Flavor {
   name: string;
@@ -42,12 +42,13 @@ export default function MenuPage() {
   const categories = Array.from(new Set(items.map((i) => i.category)));
 
   useEffect(() => {
-    const minTimer = setTimeout(() => setLoading(false), 3000);
-    fetch("/api/menu").then(r => r.json()).then(d => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 8000);
+    fetch("/api/menu", { signal: c.signal }).then(r => { clearTimeout(t); return r.json(); }).then(d => {
       if (Array.isArray(d)) setItems(d);
-      setLoading(false); clearTimeout(minTimer);
-    }).catch(() => setLoading(false));
-    return () => clearTimeout(minTimer);
+      setLoading(false);
+    }).catch(() => { clearTimeout(t); setLoading(false); });
+    return () => { clearTimeout(t); c.abort(); };
   }, []);
 
   const filtered = items.filter((item) => {
@@ -64,8 +65,12 @@ export default function MenuPage() {
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 lg:py-12 animate-fade-in">
       <div className="text-center mb-10">
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold flex items-center justify-center gap-3">
-          <HiMenu size={32} />
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="h-px w-8 bg-royal-gold/40" />
+          <HiFire className="text-royal-gold" size={22} />
+          <div className="h-px w-8 bg-royal-gold/40" />
+        </div>
+        <h1 className="font-heading text-4xl sm:text-5xl font-bold text-royal-maroon dark:text-royal-gold">
           {t("menu.title")}
         </h1>
         <div className="gold-divider max-w-xs mx-auto" />

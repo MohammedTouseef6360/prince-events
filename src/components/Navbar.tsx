@@ -17,7 +17,7 @@ const languages = [
 
 export default function Navbar() {
   const { t, lang, setLang } = useLanguage();
-  const { totalItems } = useCart();
+  const { uniqueCount } = useCart();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { settings } = useSettings();
   const pathname = usePathname();
@@ -81,20 +81,31 @@ export default function Navbar() {
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-4">
-              <div className="hidden sm:flex items-center gap-1">
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => setLang(l.code as any)}
-                    className={`px-2 py-1 text-xs rounded transition-all ${
-                      lang === l.code
-                        ? "bg-royal-gold text-royal-maroon font-bold"
-                        : "text-royal-gold/70 hover:text-royal-gold"
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
+              <div className="hidden sm:block relative">
+                <button
+                  onClick={() => setLangOpen(!langOpen)}
+                  className="flex items-center gap-1 text-royal-gold hover:text-royal-gold-light px-2 py-1 text-xs rounded hover:bg-white/10 transition font-bold"
+                >
+                  {lang.toUpperCase()}
+                  <svg className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {langOpen && (
+                  <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-royal-gold/30 z-50 min-w-[120px]">
+                    {languages.map((l) => (
+                      <button
+                        key={l.code}
+                        onClick={() => { setLang(l.code as any); setLangOpen(false); }}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-royal-gold/10 ${
+                          lang === l.code
+                            ? "text-royal-maroon dark:text-royal-gold font-bold"
+                            : "text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button
@@ -111,9 +122,9 @@ export default function Navbar() {
                 aria-label="View cart"
               >
                 <HiShoppingCart size={24} />
-                {totalItems > 0 && (
+                {uniqueCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
-                    {totalItems}
+                    {uniqueCount}
                   </span>
                 )}
               </Link>
@@ -255,9 +266,9 @@ export default function Navbar() {
                 <HiShoppingCart className="text-royal-maroon dark:text-royal-gold" size={18} />
               </div>
               <span>{t("nav.cart")}</span>
-              {totalItems > 0 && (
+              {uniqueCount > 0 && (
                 <span className="ml-auto bg-royal-maroon dark:bg-royal-gold dark:text-royal-maroon text-white text-xs px-2 py-0.5 rounded-full">
-                  {totalItems}
+                  {uniqueCount}
                 </span>
               )}
             </Link>

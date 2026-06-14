@@ -21,6 +21,7 @@ interface CartContextType {
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
   totalItems: number;
+  uniqueCount: number;
   subtotal: number;
 }
 
@@ -81,11 +82,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const totalItems = items.reduce((sum, i) => sum + i.qty, 0);
+  const uniqueCount = items.length;
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQty, clearCart, totalItems, subtotal }}
+      value={{ items, addItem, removeItem, updateQty, clearCart, totalItems, uniqueCount, subtotal }}
     >
       {children}
     </CartContext.Provider>
@@ -95,7 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (typeof window === "undefined") {
-    return { items: [], addItem: () => {}, removeItem: () => {}, updateQty: () => {}, clearCart: () => {}, totalItems: 0, subtotal: 0 };
+    return { items: [], addItem: () => {}, removeItem: () => {}, updateQty: () => {}, clearCart: () => {}, totalItems: 0, uniqueCount: 0, subtotal: 0 };
   }
   if (!context) throw new Error("useCart must be used within CartProvider");
   return context;

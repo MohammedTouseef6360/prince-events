@@ -13,6 +13,10 @@ export default function AdminGalleryPage() {
   const [images, setImages] = useState<any[]>([]);
   const [caption, setCaption] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [customEventType, setCustomEventType] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [venue, setVenue] = useState("");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -54,7 +58,7 @@ export default function AdminGalleryPage() {
         const saveRes = await fetch("/api/gallery", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: uploadData.url, caption }),
+          body: JSON.stringify({ image: uploadData.url, caption, eventType: eventType === "Custom" ? customEventType : eventType, eventDate, venue }),
         });
         if (!saveRes.ok) throw new Error("Save failed");
         setUploading(false);
@@ -62,12 +66,16 @@ export default function AdminGalleryPage() {
         const saveRes = await fetch("/api/gallery", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: imageUrl, caption }),
+          body: JSON.stringify({ image: imageUrl, caption, eventType: eventType === "Custom" ? customEventType : eventType, eventDate, venue }),
         });
         if (!saveRes.ok) throw new Error("Save failed");
       }
       setCaption("");
       setImageUrl("");
+      setEventType("");
+      setCustomEventType("");
+      setEventDate("");
+      setVenue("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       fetchImages();
     } catch (e) {
@@ -148,6 +156,40 @@ export default function AdminGalleryPage() {
               placeholder="Caption"
               className="flex-1 royal-input"
             />
+            <input
+              type="text"
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Venue (optional)"
+              className="flex-1 royal-input"
+            />
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="flex-1 royal-input"
+            />
+            <select
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="flex-1 royal-input"
+            >
+              <option value="">Event type</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Custom">Custom</option>
+            </select>
+            {eventType === "Custom" && (
+              <input
+                type="text"
+                value={customEventType}
+                onChange={(e) => setCustomEventType(e.target.value)}
+                placeholder="Enter custom event type"
+                className="flex-1 royal-input"
+              />
+            )}
             <button
               onClick={handleUpload}
               disabled={uploading}

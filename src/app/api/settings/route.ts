@@ -14,6 +14,13 @@ const DEFAULT_SETTINGS = {
   travelChargePerKm: 10,
   adminPassword: "prince@123",
   currency: "₹",
+  gstin: "",
+  fssai: "",
+  registeredAddress: "",
+  bankName: "",
+  accountNumber: "",
+  ifsc: "",
+  upiId: "",
 };
 
 export async function GET() {

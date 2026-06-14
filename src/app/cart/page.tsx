@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
-import { HiTrash, HiMinus, HiPlus, HiBadgeCheck, HiClipboardList, HiMenu, HiShoppingCart, HiSun, HiMoon, HiChat } from "react-icons/hi";
+import { HiTrash, HiMinus, HiPlus, HiBadgeCheck, HiClipboardList, HiMenu, HiShoppingCart, HiSun, HiMoon, HiChat, HiPencil } from "react-icons/hi";
 import dynamic from "next/dynamic";
 const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
 
@@ -20,6 +20,8 @@ export default function CartPage() {
   const [amPm, setAmPm] = useState("AM");
   const [mealType, setMealType] = useState("Dinner");
   const [travelCharge, setTravelCharge] = useState(0);
+  const [note, setNote] = useState("");
+  const [noteOpen, setNoteOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -40,8 +42,9 @@ export default function CartPage() {
     msg += `Wedding Date: ${date}\n`;
     msg += `Venue: ${venue}\n`;
     msg += `Time: ${time}\n`;
-    msg += `Meal: ${mealType}\n\n`;
-    msg += `Order Summary:\n`;
+    msg += `Meal: ${mealType}\n`;
+    if (note.trim()) msg += `Note: ${note}\n`;
+    msg += `\nOrder Summary:\n`;
     msg += `─────────────────\n`;
 
     items.forEach((item, i) => {
@@ -83,6 +86,7 @@ export default function CartPage() {
           venue,
         time: `${time}`,
         mealType,
+          note: note.trim() || undefined,
           items: items.map((i) => ({
             itemName: i.name,
             qty: i.qty,
@@ -172,15 +176,14 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 animate-fade-in">
-      <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold text-center mb-4 flex items-center justify-center gap-3">
-        <HiShoppingCart size={32} />
+      <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold text-center mb-4">
         {t("cart.title")}
       </h1>
       <div className="gold-divider max-w-xs mx-auto mb-8" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Customer Info */}
-        <div className="royal-card p-6">
+        <div className="royal-card p-6 animate-slide-up">
           <h2 className="font-heading text-xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
             {t("cart.customer_info")}
           </h2>
@@ -262,29 +265,60 @@ export default function CartPage() {
                 </button>
               ))}
             </div>
+
+            {/* Add Note */}
+            <div className="border border-royal-gold/20 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setNoteOpen(!noteOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-royal-gold/5 transition"
+              >
+                <span className="flex items-center gap-2">
+                  <HiPencil className="text-royal-gold" size={16} />
+                  {note ? "Edit Note" : "Add a Note"}
+                </span>
+                <svg className={`w-4 h-4 transition-transform ${noteOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {noteOpen && (
+                <div className="px-4 pb-4 animate-slide-up">
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Any special requests or additional information..."
+                    className="royal-input h-20 resize-none text-sm"
+                  />
+                </div>
+              )}
+            </div>
+            {note && !noteOpen && (
+              <p className="text-xs text-royal-gold italic truncate px-1">
+                Note: {note}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Order Summary */}
-        <div className="royal-card p-6">
+        <div className="royal-card p-6 animate-slide-up" style={{ animationDelay: "150ms" }}>
           <h2 className="font-heading text-xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
             {t("cart.order_summary")}
           </h2>
-          <div className="space-y-3 mb-4">
-            {items.map((item) => (
+          <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin">
+            {items.map((item, idx) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg animate-scale-in"
+                style={{ animationDelay: `${idx * 80}ms` }}
               >
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-800 dark:text-gray-200 truncate">
                     {item.name}
                   </p>
                   <p className="text-xs text-gray-600">
                     ₹{item.price} / {item.pricingLabel}
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => updateQty(item.key, item.qty - 1)}
                     className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -314,7 +348,7 @@ export default function CartPage() {
                     <HiTrash size={16} />
                   </button>
                 </div>
-                <div className="w-20 text-right font-bold">
+                <div className="w-20 text-right font-bold text-royal-maroon dark:text-royal-gold">
                   ₹{item.price * item.qty}
                 </div>
               </div>
@@ -336,7 +370,7 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between text-xl font-bold">
               <span>{t("cart.total")}:</span>
-              <span className="text-royal-maroon dark:text-royal-gold">
+              <span className="text-royal-maroon dark:text-royal-gold text-2xl">
                 ₹{total}
               </span>
             </div>
@@ -358,6 +392,7 @@ export default function CartPage() {
                 venue,
                 time: `${time}`,
                 mealType,
+                note: note.trim() || undefined,
                 items: items.map((i) => ({
                   name: i.name,
                   qty: i.qty,

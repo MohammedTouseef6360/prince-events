@@ -107,10 +107,10 @@ export default function ItemTile({ item }: ItemTileProps) {
             </p>
           )}
           <div className="flex items-center justify-between mt-auto">
-            <span className="text-royal-maroon dark:text-royal-gold font-bold text-lg">
+            <span className="text-royal-maroon dark:text-royal-gold font-bold text-xl sm:text-2xl tracking-tight">
               {showRange ? `₹${minPrice} - ₹${maxPrice}` : `₹${item.price}`}
             </span>
-            <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 bg-royal-gold/10 dark:bg-royal-gold/10 px-3 py-1 rounded-full border border-royal-gold/20">
               {displayPricingLabel}
             </span>
           </div>

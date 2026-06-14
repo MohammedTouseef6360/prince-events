@@ -25,6 +25,7 @@ interface Order {
   venue: string;
   time: string;
   mealType?: string;
+  note?: string;
   items: OrderItem[];
   travelCharge: number;
   subtotal: number;
@@ -237,6 +238,12 @@ export default function MyOrdersPage() {
                     <p className="text-xs text-gray-600 uppercase tracking-wider">{t("my_orders.venue")}</p>
                     <p className="font-bold text-gray-800 dark:text-gray-200">{order.venue}</p>
                   </div>
+                  {order.note && (
+                    <div className="sm:col-span-2">
+                      <p className="text-xs text-gray-600 uppercase tracking-wider">Note</p>
+                      <p className="font-medium text-gray-800 dark:text-gray-200 italic">{order.note}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="gold-divider" />
@@ -273,6 +280,7 @@ export default function MyOrdersPage() {
                         date: order.date,
                         venue: order.venue,
                         time: order.time,
+                        note: order.note,
                         items: order.items.map((i) => ({ name: i.itemName, qty: i.qty, price: i.price, pricingLabel: i.pricingType })),
                         subtotal: order.subtotal,
                         travelCharge: order.travelCharge,

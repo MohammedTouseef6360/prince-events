@@ -56,14 +56,24 @@ async function removeOne(collection: string, id: string) {
 }
 
 async function findSettings() {
-  const res = await fetch(`${DB_URL}/settings.json`);
-  return await res.json();
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), 8000);
+  try {
+    const res = await fetch(`${DB_URL}/settings.json`, { signal: c.signal });
+    clearTimeout(t);
+    return await res.json();
+  } catch { clearTimeout(t); return null; }
 }
 
 async function saveSettings(data: any) {
   const existing = (await findSettings()) || {};
   const merged = { ...existing, ...data };
-  await fetch(`${DB_URL}/settings.json`, { method: "PUT", body: JSON.stringify(merged) });
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), 8000);
+  try {
+    await fetch(`${DB_URL}/settings.json`, { method: "PUT", body: JSON.stringify(merged), signal: c.signal });
+    clearTimeout(t);
+  } catch { clearTimeout(t); }
   return merged;
 }
 

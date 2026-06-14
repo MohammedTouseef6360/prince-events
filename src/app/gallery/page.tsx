@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { HiX, HiPhotograph, HiSearch } from "react-icons/hi";
+import { HiX, HiPhotograph, HiSearch, HiCalendar, HiLocationMarker, HiStar } from "react-icons/hi";
 
 interface GalleryItem {
   _id: string;
@@ -11,7 +11,19 @@ interface GalleryItem {
   caption: string;
   captionKN: string;
   captionHI: string;
+  eventType?: string;
+  eventDate?: string;
+  venue?: string;
 }
+
+const EVENT_TABS = ["All", "Wedding", "Corporate", "Birthday", "Engagement"];
+
+const EVENT_COLORS: Record<string, string> = {
+  Wedding: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
+  Corporate: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+  Birthday: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  Engagement: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+};
 
 export default function GalleryPage() {
   const { t, lang } = useLanguage();
@@ -19,21 +31,45 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<GalleryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
 
   useEffect(() => {
-    const minTimer = setTimeout(() => setLoading(false), 3000);
-    fetch("/api/gallery").then(r => r.json()).then(d => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 8000);
+    fetch("/api/gallery", { signal: c.signal }).then(r => { clearTimeout(t); return r.json(); }).then(d => {
       if (Array.isArray(d)) setImages(d);
-      setLoading(false); clearTimeout(minTimer);
-    }).catch(() => { setError("Failed to load gallery"); setLoading(false); });
-    return () => clearTimeout(minTimer);
+      setLoading(false);
+    }).catch(() => { clearTimeout(t); setError("Failed to load gallery"); setLoading(false); });
+    return () => { clearTimeout(t); c.abort(); };
   }, []);
+
+  const filtered = activeTab === "All" ? images : images.filter(img => img.eventType === activeTab);
+
+  const getCaption = (img: GalleryItem) =>
+    lang === "kn" && img.captionKN
+      ? img.captionKN
+      : lang === "hi" && img.captionHI
+      ? img.captionHI
+      : img.caption;
+
+  const formatDate = (d: string) => {
+    if (!d) return "";
+    try {
+      return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    } catch {
+      return d;
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 lg:py-12 animate-fade-in">
       <div className="text-center mb-10">
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold flex items-center justify-center gap-3">
-          <HiPhotograph size={32} />
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="h-px w-8 bg-royal-gold/40" />
+          <HiStar className="text-royal-gold" size={20} />
+          <div className="h-px w-8 bg-royal-gold/40" />
+        </div>
+        <h1 className="font-heading text-4xl sm:text-5xl font-bold text-royal-maroon dark:text-royal-gold">
           {t("gallery.title")}
         </h1>
         <div className="gold-divider max-w-xs mx-auto" />
@@ -68,76 +104,137 @@ export default function GalleryPage() {
           <p className="text-gray-600 dark:text-gray-400">Gallery coming soon...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {images.map((img, i) => {
-            const displayCaption =
-              lang === "kn" && img.captionKN
-                ? img.captionKN
-                : lang === "hi" && img.captionHI
-                ? img.captionHI
-                : img.caption;
-
-            return (
-              <div
-                key={img._id}
-                onClick={() => setSelected(img)}
-                className={`royal-card overflow-hidden cursor-pointer group animate-card-enter stagger-${(i % 6) + 1}`}
+        <>
+          {/* Event Type Tabs */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+            {EVENT_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                  activeTab === tab
+                    ? "bg-royal-maroon text-white dark:bg-royal-gold dark:text-royal-maroon shadow-lg"
+                    : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-royal-gold/20 hover:text-royal-maroon dark:hover:text-royal-gold"
+                }`}
               >
-                <div className="relative h-64 overflow-hidden">
-                  <Image
-                    src={img.image}
-                    alt={displayCaption || "Gallery Image"}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                    <HiSearch className="text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid View */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((img, i) => {
+              const caption = getCaption(img);
+              return (
+                <div
+                  key={img._id}
+                  onClick={() => setSelected(img)}
+                  className="royal-card overflow-hidden cursor-pointer group animate-scale-in hover:-translate-y-2 transition-all duration-300"
+                  style={{ animationDelay: `${(i % 9) * 60}ms` }}
+                >
+                  <div className="relative h-56 sm:h-64 overflow-hidden">
+                    <Image
+                      src={img.image}
+                      alt={caption || "Gallery Image"}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
+                      {caption && (
+                        <p className="text-white font-semibold text-sm truncate">{caption}</p>
+                      )}
+                      {img.eventType && (
+                        <span className="inline-block mt-1 text-xs text-royal-gold font-medium">{img.eventType}</span>
+                      )}
+                    </div>
+                    <div className="absolute top-3 right-3 bg-royal-gold/90 text-royal-maroon p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-75">
+                      <HiSearch size={18} />
+                    </div>
+                    {img.eventType && (
+                      <span className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-semibold shadow-lg ${
+                        EVENT_COLORS[img.eventType] || "bg-gray-100 text-gray-700"
+                      }`}>
+                        {img.eventType}
+                      </span>
+                    )}
                   </div>
                 </div>
-                {displayCaption && (
-                  <div className="p-3">
-                    <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                      {displayCaption}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="text-center py-16">
+              <HiPhotograph className="mx-auto text-5xl mb-3 text-gray-300 dark:text-gray-600" />
+              <p className="text-gray-500 dark:text-gray-400">No {activeTab.toLowerCase()} photos yet</p>
+            </div>
+          )}
+        </>
       )}
 
       {/* Lightbox */}
       {selected && (
         <div
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 animate-fade-in backdrop-blur-sm"
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4 animate-fade-in backdrop-blur-sm"
           onClick={() => setSelected(null)}
         >
-          <button
-            onClick={() => setSelected(null)}
-            className="absolute top-4 right-4 text-white hover:text-royal-gold p-2 hover:scale-110 transition-all z-10"
-            aria-label="Close lightbox"
+          <div
+            className="relative max-w-5xl w-full max-h-[90vh] flex flex-col lg:flex-row bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <HiX size={32} />
-          </button>
-          <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="relative w-full" style={{ minHeight: "50vh" }}>
+            <button
+              onClick={() => setSelected(null)}
+              className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-royal-gold text-white hover:text-royal-maroon p-2 rounded-full transition-all"
+              aria-label="Close lightbox"
+            >
+              <HiX size={24} />
+            </button>
+
+            <div className="relative w-full lg:w-3/5 min-h-[40vh] lg:min-h-[70vh] bg-gray-900">
               <Image
                 src={selected.image}
-                alt={selected.caption || "Gallery image"}
-                width={1200}
-                height={800}
-                className="object-contain max-h-[85vh] mx-auto rounded-lg shadow-2xl"
-                style={{ width: "auto", height: "auto" }}
+                alt={getCaption(selected) || "Gallery image"}
+                fill
+                className="object-contain"
+                sizes="(max-width: 1024px) 100vw, 60vw"
               />
             </div>
-            {selected.caption && (
-              <p className="text-white/90 text-center mt-4 text-lg font-heading italic">
-                &ldquo;{selected.caption}&rdquo;
-              </p>
-            )}
+
+            <div className="w-full lg:w-2/5 p-6 lg:p-8 flex flex-col justify-center bg-white dark:bg-gray-900 overflow-y-auto">
+              {selected.eventType && (
+                <span
+                  className={`inline-block self-start mb-4 px-3 py-1 rounded-full text-xs font-semibold ${
+                    EVENT_COLORS[selected.eventType] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  }`}
+                >
+                  {selected.eventType}
+                </span>
+              )}
+              {getCaption(selected) && (
+                <h3 className="font-heading text-2xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
+                  {getCaption(selected)}
+                </h3>
+              )}
+              {selected.eventDate && (
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-3">
+                  <HiCalendar className="text-royal-gold" size={18} />
+                  <span>{formatDate(selected.eventDate)}</span>
+                </div>
+              )}
+              {selected.venue && (
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-4">
+                  <HiLocationMarker className="text-royal-gold" size={18} />
+                  <span>{selected.venue}</span>
+                </div>
+              )}
+              {!selected.eventType && !getCaption(selected) && !selected.eventDate && !selected.venue && (
+                <p className="text-gray-400 italic">No additional details available</p>
+              )}
+            </div>
           </div>
         </div>
       )}

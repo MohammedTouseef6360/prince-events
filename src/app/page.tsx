@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRealtime } from "@/lib/use-realtime";
-import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
-import ItemTile from "@/components/ItemTile";
 import FeaturedSlideshow from "@/components/FeaturedSlideshow";
-import { HiStar, HiBadgeCheck, HiArrowDown, HiSparkles, HiHeart, HiPhone, HiCamera, HiEmojiHappy } from "react-icons/hi";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
+import { HiStar, HiBadgeCheck, HiArrowDown, HiSparkles, HiHeart, HiPhone, HiCamera, HiEmojiHappy, HiFire } from "react-icons/hi";
 
 interface Flavor {
   name: string;
@@ -55,6 +54,8 @@ export default function HomePage() {
   const [fbSubmitted, setFbSubmitted] = useState(false);
   const [fbSending, setFbSending] = useState(false);
   const [fbError, setFbError] = useState("");
+  const [fbPhoto, setFbPhoto] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [pageError, setPageError] = useState("");
   const fbAbortRef = useRef<AbortController | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -78,7 +79,7 @@ export default function HomePage() {
       const res = await fetch("/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: fbName, message: fbMessage, rating: fbRating }),
+        body: JSON.stringify({ name: fbName, message: fbMessage, rating: fbRating, photo: fbPhoto }),
         signal: controller.signal,
       });
       if (!res.ok) throw new Error("Failed to submit feedback");
@@ -86,6 +87,7 @@ export default function HomePage() {
       setFbName("");
       setFbMessage("");
       setFbRating(5);
+      setFbPhoto("");
       successTimeoutRef.current = setTimeout(() => setFbSubmitted(false), 5000);
     } catch (err: any) {
       if (err?.name !== "AbortError") {
@@ -98,8 +100,8 @@ export default function HomePage() {
     }
   };
 
-  const scrollToMenu = () => {
-    const el = document.getElementById("featured-section");
+  const scrollToFeedback = () => {
+    const el = document.getElementById("feedback-section");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -134,59 +136,37 @@ export default function HomePage() {
               {lang === "kn" && settings.heroDescKN ? settings.heroDescKN : lang === "hi" && settings.heroDescHI ? settings.heroDescHI : settings.heroDesc || t("home.hero_desc")}
             </p>
 
+            {/* Explore Menu button */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+              <a
+                href="/menu"
+                className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-emerald-600/30 active:scale-95 shadow-lg flex items-center gap-2"
+              >
+                <HiFire size={22} /> Explore Menu
+              </a>
+            </div>
+
             {/* Elegant scroll indicator */}
             <button
-              onClick={scrollToMenu}
+              onClick={scrollToFeedback}
               className="group inline-flex flex-col items-center gap-2 text-white/50 hover:text-royal-gold transition-all duration-500"
             >
               <span className="text-sm tracking-widest uppercase font-medium">
-                Scroll to Menu
+                Read Reviews
               </span>
               <span className="animate-bounce">
                 <HiArrowDown size={24} className="group-hover:translate-y-1 transition-transform" />
               </span>
             </button>
           </div>
-
-          {/* Featured Slideshow */}
-          {featuredItems.length > 0 && (
-            <FeaturedSlideshow items={featuredItems} />
-          )}
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-royal-cream dark:from-gray-950 to-transparent" />
       </section>
 
-      {/* ─── Featured Items ─── */}
+      {/* ─── Today's Special Marquee ─── */}
       {featuredItems.length > 0 && (
-        <section id="featured-section" className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20 animate-slide-up">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-            <div className="inline-flex items-center gap-3 mb-3">
-              <HiSparkles aria-hidden="true" className="text-royal-gold" size={28} />
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
-                {t("home.featured")}
-              </h2>
-              <HiSparkles aria-hidden="true" className="text-royal-gold" size={28} />
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md mx-auto">
-              Carefully crafted selections for your special celebration
-            </p>
-            <div className="gold-divider max-w-xs mx-auto mt-6" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {featuredItems.slice(0, 6).map((item) => (
-              <div key={item._id} className="animate-scale-in">
-                <ItemTile item={item} />
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link href="/menu" className="royal-btn-accent mobile-full-cta inline-flex items-center gap-2 px-8 py-3 text-lg group">
-              <span>Explore Our Menu</span>
-              <HiArrowDown className="group-hover:translate-x-1 transition-transform" size={18} />
-            </Link>
-          </div>
-        </section>
+        <FeaturedSlideshow items={featuredItems} />
       )}
 
       {/* ─── Error Banner ─── */}
@@ -200,7 +180,7 @@ export default function HomePage() {
       )}
 
       {/* ─── Feedback Section ─── */}
-      <section className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-8 sm:py-12 lg:py-20">
+      <section id="feedback-section" className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-8 sm:py-12 lg:py-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-10 lg:mb-12">
             <div className="inline-flex items-center gap-3 mb-3">
@@ -298,6 +278,41 @@ export default function HomePage() {
                       </button>
                     ))}
                   </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => setFbPhoto(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={fbPhoto}
+                      onChange={(e) => setFbPhoto(e.target.value)}
+                      placeholder="Or paste photo URL"
+                      className="royal-input flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="royal-btn text-sm py-2 px-3"
+                    >
+                      Upload Photo
+                    </button>
+                  </div>
+                  {fbPhoto && (
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-royal-gold/30 mx-auto">
+                      <img src={fbPhoto} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                   {fbError && (
                     <div className="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 rounded-lg px-4 py-2">
                       {fbError}
@@ -321,34 +336,7 @@ export default function HomePage() {
 
           {/* Feedback Display */}
           {feedbacks.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {feedbacks.map((fb) => (
-                <div key={fb._id} className="royal-card p-6 text-center hover:-translate-y-2 transition-all duration-300">
-                  <div className="w-14 h-14 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-4">
-                    <HiHeart className="text-royal-gold" size={24} />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 italic mb-4 leading-relaxed text-sm">
-                    &ldquo;{fb.message}&rdquo;
-                  </p>
-                  <div className="flex items-center justify-center gap-1 text-royal-gold mb-3">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <HiStar
-                        key={i}
-                        className={
-                          i < fb.rating
-                            ? "text-royal-gold fill-current"
-                            : "text-gray-300 dark:text-gray-600"
-                        }
-                        size={16}
-                      />
-                    ))}
-                  </div>
-                  <p className="font-bold text-royal-maroon dark:text-royal-gold text-sm">
-                    - {fb.name}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <TestimonialCarousel testimonials={feedbacks} />
           )}
         </div>
       </section>

@@ -33,6 +33,7 @@ interface OrderData {
   venue: string;
   time: string;
   mealType?: string;
+  note?: string;
   items: LineItem[];
   subtotal: number;
   travelCharge: number;
@@ -48,6 +49,13 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
   const [tagline, setTagline] = useState("We Serve You Smile");
   const [phone, setPhone] = useState("+91 8618648069");
   const [instagram, setInstagram] = useState("prince_events_001");
+  const [gstin, setGstin] = useState("");
+  const [fssai, setFssai] = useState("");
+  const [registeredAddress, setRegisteredAddress] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifsc, setIfsc] = useState("");
+  const [upiId, setUpiId] = useState("");
 
   useEffect(() => {
     fetch("/api/settings").then((r) => r.json()).then((d) => {
@@ -56,9 +64,17 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
         if (d.tagline) setTagline(d.tagline);
         if (d.phone) setPhone(d.phone);
         if (d.instagram) setInstagram(d.instagram);
+        if (d.gstin) setGstin(d.gstin);
+        if (d.fssai) setFssai(d.fssai);
+        if (d.registeredAddress) setRegisteredAddress(d.registeredAddress);
+        if (d.bankName) setBankName(d.bankName);
+        if (d.accountNumber) setAccountNumber(d.accountNumber);
+        if (d.ifsc) setIfsc(d.ifsc);
+        if (d.upiId) setUpiId(d.upiId);
       }
     }).catch(() => {});
   }, []);
+
   const data = order || {
     customerName: "Demo Customer",
     phone: "+91 9876543210",
@@ -88,14 +104,36 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.setFillColor(MAROON[0], MAROON[1], MAROON[2]);
     doc.rect(0, 0, pw, 45, "F");
 
+    // Try to load logo
+    try {
+      const logoImg = new Image();
+      logoImg.crossOrigin = "anonymous";
+      const logoData = await new Promise<string>((resolve, reject) => {
+        logoImg.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 28;
+          canvas.height = 28;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { reject(); return; }
+          ctx.drawImage(logoImg, 0, 0, 28, 28);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        logoImg.onerror = () => reject();
+        logoImg.src = "/favicon.svg";
+      });
+      doc.addImage(logoData, "PNG", m, 10, 12, 12);
+    } catch {
+      // fallback: nothing, just text
+    }
+
     doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
     doc.setFont("times", "bold");
     doc.setFontSize(26);
-    doc.text(businessName, m, 25);
+    doc.text(businessName, m + 16, 25);
 
     doc.setFont("times", "italic");
     doc.setFontSize(12);
-    doc.text(tagline, m, 33);
+    doc.text(tagline, m + 16, 33);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -138,6 +176,10 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.text(`Invoice Date: ${formatDate(new Date())}`, m + 90, 76);
     doc.text(`Event Date: ${data.date}`, m, 82);
 
+    if (gstin) {
+      doc.text(`GSTIN: ${gstin}`, m + 90, 82);
+    }
+
     // Status stamp
     const stampX = 150;
     doc.setDrawColor(42, 157, 143);
@@ -170,6 +212,11 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.text(`Time: ${data.time}`, col2X, 113);
     if (data.mealType) {
       doc.text(`Meal Type: ${data.mealType}`, col2X, 119);
+    }
+    if (data.note) {
+      doc.setFont("helvetica", "italic");
+      doc.text(`Note: ${data.note}`, col1X, 125);
+      doc.setFont("helvetica", "normal");
     }
 
     // ── Line Items Table (autoTable) ──
@@ -221,7 +268,7 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
 
     // ── Totals Section ──
     let ty = (doc as any).lastAutoTable.finalY + 10;
-    const tl = 130, tv = 190; // label x, value x
+    const tl = 130, tv = 190;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
@@ -234,13 +281,11 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.text(`\u20B9${travelCharge.toFixed(2)}`, tv, ty, { align: "right" });
     ty += 5;
 
-    // Gold divider
     doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
     doc.setLineWidth(1);
     doc.line(tl, ty, tv, ty);
     ty += 8;
 
-    // Grand Total
     doc.setFont("times", "bold");
     doc.setFontSize(16);
     doc.setTextColor(MAROON[0], MAROON[1], MAROON[2]);
@@ -249,7 +294,58 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.setFontSize(16);
     doc.text(`\u20B9${grandTotal.toFixed(2)}`, tv, ty, { align: "right" });
 
-    // ── Footer (Y=265+) ──
+    // ── GST & FSSAI line ──
+    ty += 10;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    const complianceParts: string[] = [];
+    if (gstin) complianceParts.push(`GSTIN: ${gstin}`);
+    if (fssai) complianceParts.push(`FSSAI: ${fssai}`);
+    if (complianceParts.length > 0) {
+      doc.text(complianceParts.join("  |  "), m, ty);
+      ty += 4;
+    }
+
+    // ── Bank Details Block ──
+    if (bankName || accountNumber || ifsc || upiId) {
+      ty += 3;
+      doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
+      doc.setLineWidth(0.3);
+      doc.line(m, ty - 2, 190, ty - 2);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(MAROON[0], MAROON[1], MAROON[2]);
+      doc.text("BANK DETAILS", m, ty);
+      ty += 4;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(CHARCOAL[0], CHARCOAL[1], CHARCOAL[2]);
+      const bankParts: string[] = [];
+      if (bankName) bankParts.push(`Bank: ${bankName}`);
+      if (accountNumber) bankParts.push(`A/c: ${accountNumber}`);
+      if (ifsc) bankParts.push(`IFSC: ${ifsc}`);
+      if (upiId) bankParts.push(`UPI: ${upiId}`);
+      doc.text(bankParts.join("  |  "), m, ty);
+      ty += 5;
+    }
+
+    // ── Signatory Block ──
+    ty += 4;
+    doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
+    doc.setLineWidth(0.3);
+    doc.line(140, ty, 190, ty);
+    ty += 4;
+    doc.setFont("times", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(MAROON[0], MAROON[1], MAROON[2]);
+    doc.text(`For ${businessName}`, 165, ty, { align: "right" });
+    ty += 5;
+    doc.setFont("times", "italic");
+    doc.setFontSize(8);
+    doc.text("Authorised Signatory", 165, ty, { align: "right" });
+
+    // ── Footer ──
     let fy = 260;
     doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
     doc.setLineWidth(0.3);
@@ -266,6 +362,11 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text("Contact query: If you have any questions regarding this invoice, please reach out.", pw / 2, fy, { align: "center" });
+
+    if (registeredAddress) {
+      fy += 4;
+      doc.text(registeredAddress, pw / 2, fy, { align: "center" });
+    }
 
     // Maroon footer band Y=285 to Y=297
     doc.setFillColor(MAROON[0], MAROON[1], MAROON[2]);
@@ -298,7 +399,6 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
         doc.setFillColor(BEIGE[0], BEIGE[1], BEIGE[2]);
         doc.rect(0, 0, pw, ph, "F");
 
-        // Add label at top
         doc.setFont("times", "bold");
         doc.setFontSize(14);
         doc.setTextColor(MAROON[0], MAROON[1], MAROON[2]);
@@ -308,7 +408,6 @@ export default function PDFDownload({ order, invoiceImageUrl }: { order?: OrderD
         doc.setLineWidth(0.5);
         doc.line(m, 25, pw - m, 25);
 
-        // Calculate image dimensions to fit page
         const imgProps = doc.getImageProperties(imgData);
         const maxW = pw - 2 * m;
         const maxH = ph - 40;

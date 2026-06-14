@@ -20,25 +20,19 @@ export function useRealtime<T = any>(collection: string): T[] {
 
   useEffect(() => {
     mounted.current = true;
-    async function fetchData() {
-      try {
-        const apiPath = COLLECTION_MAP[collection];
-        if (apiPath) {
-          const res = await fetch(apiPath);
-          const json = await res.json();
-          if (mounted.current) {
-            const list = Array.isArray(json) ? json : fta(json);
-            setData(list as T[]);
-          }
-        } else {
-          const res = await fetch(`${DB_URL}/${collection}.json`);
-          const json = await res.json();
-          if (mounted.current) setData(fta(json) as T[]);
-        }
-      } catch {}
+    function fetchData() {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const apiPath = COLLECTION_MAP[collection];
+      const url = apiPath || `${DB_URL}/${collection}.json`;
+      fetch(url, { signal: controller.signal }).then(r => { clearTimeout(timeout); return r.json(); }).then(json => {
+        if (!mounted.current) return;
+        const list = Array.isArray(json) ? json : fta(json);
+        setData(list as T[]);
+      }).catch(() => { clearTimeout(timeout); });
     }
     fetchData();
-    intervalRef.current = setInterval(fetchData, 3000);
+    intervalRef.current = setInterval(fetchData, 5000);
     return () => {
       mounted.current = false;
       if (intervalRef.current) clearInterval(intervalRef.current);
