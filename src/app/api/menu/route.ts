@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { firebaseDb } from "@/lib/firebase-db";
+import { isAuthorizedWrite } from "@/lib/session";
+import { menuItemSchema } from "@/lib/validation";
 
 const CACHE_TTL = 3000;
 
@@ -34,9 +36,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await isAuthorizedWrite(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const data = await request.json();
-    const item = await firebaseDb.menu.create(data);
+    const parsed = menuItemSchema.safeParse(data);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid menu item data" }, { status: 400 });
+    }
+    const item = await firebaseDb.menu.create(parsed.data);
     bustCache();
     return NextResponse.json(item, { status: 201 });
   } catch {

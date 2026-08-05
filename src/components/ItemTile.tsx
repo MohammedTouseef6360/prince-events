@@ -62,9 +62,20 @@ export default function ItemTile({ item }: ItemTileProps) {
   return (
     <>
       <div
+        role="button"
+        tabIndex={item.inStock ? 0 : -1}
+        aria-disabled={!item.inStock}
+        aria-label={item.inStock ? `${displayName} - view details` : `${displayName} - out of stock`}
         onClick={() => item.inStock && setModalOpen(true)}
+        onKeyDown={(e) => {
+          if (!item.inStock) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setModalOpen(true);
+          }
+        }}
         className={`royal-card overflow-hidden group cursor-pointer h-full flex flex-col ${
-          !item.inStock ? "opacity-70 cursor-not-allowed" : ""
+          !item.inStock ? "opacity-70 cursor-not-allowed" : "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal-gold"
         }`}
       >
         <div className="relative h-52 shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
@@ -84,13 +95,13 @@ export default function ItemTile({ item }: ItemTileProps) {
             </div>
           )}
           {item.featured && (
-            <span className="absolute top-2 left-2 bg-royal-gold text-royal-maroon text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+            <span className="absolute top-2 left-2 bg-royal-gold text-royal-maroon text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
               <HiStar size={12} /> Featured
             </span>
           )}
           {!item.inStock && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-              <span className="bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm shadow-lg">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm">
                 {t("menu.out_of_stock")}
               </span>
             </div>

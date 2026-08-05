@@ -6,7 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/lib/useSettings";
 import FeaturedSlideshow from "@/components/FeaturedSlideshow";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
-import { HiStar, HiBadgeCheck, HiArrowDown, HiSparkles, HiHeart, HiPhone, HiCamera, HiEmojiHappy, HiFire } from "react-icons/hi";
+import { HiStar, HiBadgeCheck, HiArrowDown, HiPhone, HiCamera, HiRefresh } from "react-icons/hi";
 
 interface Flavor {
   name: string;
@@ -44,8 +44,8 @@ interface Feedback {
 export default function HomePage() {
   const { t, lang } = useLanguage();
   const { settings } = useSettings();
-  const realMenu = useRealtime<MenuItem>("menu");
-  const realFeedback = useRealtime<Feedback>("testimonials");
+  const { data: realMenu, error: menuError, refetch: refetchMenu } = useRealtime<MenuItem>("menu");
+  const { data: realFeedback, error: feedbackError, refetch: refetchFeedback } = useRealtime<Feedback>("testimonials");
   const featuredItems = realMenu.filter((i) => i.featured);
   const feedbacks = realFeedback;
   const [fbName, setFbName] = useState("");
@@ -56,7 +56,7 @@ export default function HomePage() {
   const [fbError, setFbError] = useState("");
   const [fbPhoto, setFbPhoto] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pageError, setPageError] = useState("");
+  const pageError = menuError || feedbackError;
   const fbAbortRef = useRef<AbortController | null>(null);
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -113,14 +113,12 @@ export default function HomePage() {
     <div className="animate-fade-in">
       {/* ─── Hero Section ─── */}
       <section className="relative min-h-[90vh] flex flex-col justify-center overflow-hidden bg-gradient-to-br from-royal-maroon via-royal-maroon-dark to-royal-burgundy text-white">
-        <div className="absolute inset-0 opacity-[0.08] ornament" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.12),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,253,208,0.06),transparent_50%)]" />
 
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 mb-6 bg-white/10 backdrop-blur-sm border border-royal-gold/20 rounded-full px-5 py-2">
-              <HiSparkles aria-hidden="true" className="text-royal-gold" size={16} />
+            <div className="inline-flex items-center gap-2 mb-6 bg-white/10 border border-royal-gold/20 rounded-full px-5 py-2">
               <span className="text-royal-gold text-sm font-medium tracking-wide">
                 {settings.address}
               </span>
@@ -140,9 +138,9 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
               <a
                 href="/menu"
-                className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-emerald-600/30 active:scale-95 shadow-lg flex items-center gap-2"
+                className="bg-royal-gold hover:bg-royal-gold-light text-royal-maroon font-bold text-lg px-8 py-4 rounded-xl transition-all active:scale-95 flex items-center gap-2"
               >
-                <HiFire size={22} /> Explore Menu
+                Explore Menu
               </a>
             </div>
 
@@ -175,6 +173,12 @@ export default function HomePage() {
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
             <p className="text-red-600 dark:text-red-400 font-medium">{pageError}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Please try refreshing the page</p>
+            <button
+              onClick={() => { refetchMenu(); refetchFeedback(); }}
+              className="mt-3 royal-btn inline-flex items-center gap-2 text-sm py-2 px-4"
+            >
+              <HiRefresh size={16} /> Retry
+            </button>
           </div>
         </section>
       )}
@@ -182,14 +186,10 @@ export default function HomePage() {
       {/* ─── Feedback Section ─── */}
       <section id="feedback-section" className="bg-gradient-to-b from-royal-maroon/[0.03] to-royal-maroon/[0.07] dark:from-gray-900/50 dark:to-gray-950/30 py-8 sm:py-12 lg:py-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-            <div className="inline-flex items-center gap-3 mb-3">
-              <HiHeart aria-hidden="true" className="text-red-400" size={24} />
+            <div className="text-center mb-8 sm:mb-10 lg:mb-12">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-royal-maroon dark:text-royal-gold">
                 {t("home.testimonials")}
               </h2>
-              <HiHeart aria-hidden="true" className="text-red-400" size={24} />
-            </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Voices of couples who trusted us with their special day
             </p>
@@ -198,11 +198,12 @@ export default function HomePage() {
 
           {/* Overall Rating */}
           {feedbacks.length > 0 && (
-            <div className="flex items-center justify-center gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl px-8 py-5 max-w-md mx-auto shadow-lg border border-royal-gold/10">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center justify-center gap-4 mb-12 bg-white dark:bg-gray-800 rounded-2xl px-8 py-5 max-w-md mx-auto border border-royal-gold/10">
+              <div className="flex items-center gap-1" role="img" aria-label={`Average rating ${avgRating.toFixed(1)} out of 5`}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <HiStar
                     key={star}
+                    aria-hidden="true"
                     className={star <= Math.round(avgRating) ? "text-royal-gold fill-current" : "text-gray-300 dark:text-gray-600"}
                     size={28}
                   />
@@ -226,7 +227,7 @@ export default function HomePage() {
             <div className="royal-card p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 rounded-full bg-royal-gold/15 flex items-center justify-center">
-                  <HiEmojiHappy className="text-royal-gold" size={20} />
+                  <HiStar className="text-royal-gold" size={20} />
                 </div>
                 <h3 className="font-heading text-lg font-bold text-royal-maroon dark:text-royal-gold">
                   {t("home.feedback_title")}
@@ -243,21 +244,33 @@ export default function HomePage() {
                 </div>
               ) : (
                 <form onSubmit={handleFeedbackSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    value={fbName}
-                    onChange={(e) => setFbName(e.target.value)}
-                    placeholder={t("home.feedback_name")}
-                    className="royal-input"
-                    required
-                  />
-                  <textarea
-                    value={fbMessage}
-                    onChange={(e) => setFbMessage(e.target.value)}
-                    placeholder={t("home.feedback_placeholder")}
-                    className="royal-input h-24 resize-none"
-                    required
-                  />
+                  <div>
+                    <label htmlFor="fb-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      {t("home.feedback_name")}
+                    </label>
+                    <input
+                      id="fb-name"
+                      type="text"
+                      value={fbName}
+                      onChange={(e) => setFbName(e.target.value)}
+                      placeholder={t("home.feedback_name")}
+                      className="royal-input"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="fb-message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      {t("home.feedback_placeholder")}
+                    </label>
+                    <textarea
+                      id="fb-message"
+                      value={fbMessage}
+                      onChange={(e) => setFbMessage(e.target.value)}
+                      placeholder={t("home.feedback_placeholder")}
+                      className="royal-input h-24 resize-none"
+                      required
+                    />
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Rating:</span>
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -267,8 +280,10 @@ export default function HomePage() {
                         onClick={() => setFbRating(star)}
                         className="text-2xl transition hover:scale-110"
                         aria-label={`Rate ${star} stars`}
+                        aria-pressed={fbRating === star}
                       >
                         <HiStar
+                          aria-hidden="true"
                           className={
                             star <= fbRating
                               ? "text-royal-gold fill-current"
@@ -284,6 +299,7 @@ export default function HomePage() {
                       ref={fileInputRef}
                       accept="image/*"
                       className="hidden"
+                      aria-label="Upload feedback photo"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -293,13 +309,19 @@ export default function HomePage() {
                         }
                       }}
                     />
-                    <input
-                      type="text"
-                      value={fbPhoto}
-                      onChange={(e) => setFbPhoto(e.target.value)}
-                      placeholder="Or paste photo URL"
-                      className="royal-input flex-1"
-                    />
+                    <div className="flex-1">
+                      <label htmlFor="fb-photo" className="sr-only">
+                        Or paste photo URL
+                      </label>
+                      <input
+                        id="fb-photo"
+                        type="text"
+                        value={fbPhoto}
+                        onChange={(e) => setFbPhoto(e.target.value)}
+                        placeholder="Or paste photo URL"
+                        className="royal-input"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -343,8 +365,7 @@ export default function HomePage() {
 
       {/* ─── Contact CTA ─── */}
       <section className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-royal-maroon to-royal-maroon-dark p-8 sm:p-14 text-center shadow-2xl">
-          <div className="absolute inset-0 opacity-[0.06] ornament" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-royal-maroon to-royal-maroon-dark p-8 sm:p-14 text-center">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.1),transparent_60%)]" />
           <div className="relative z-10">
             <div className="w-16 h-16 rounded-full bg-royal-gold/15 flex items-center justify-center mx-auto mb-5">
@@ -359,7 +380,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href={`tel:+${settings.phone.replace(/\D/g, "")}`}
-                className="mobile-full-cta bg-royal-gold text-royal-maroon font-bold py-3 px-8 rounded-xl hover:bg-royal-gold-light hover:-translate-y-0.5 transition-all shadow-lg flex items-center justify-center gap-3"
+                className="mobile-full-cta bg-royal-gold text-royal-maroon font-bold py-3 px-8 rounded-xl hover:bg-royal-gold-light transition-all flex items-center justify-center gap-3"
               >
                 <HiPhone size={20} />
                 {settings.phone}
@@ -367,7 +388,7 @@ export default function HomePage() {
               <a
                 href={`https://instagram.com/${settings.instagram}`}
                 target="_blank"
-                className="mobile-full-cta border-2 border-royal-gold/50 text-royal-gold font-bold py-3 px-8 rounded-xl hover:bg-royal-gold hover:text-royal-maroon hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3"
+                className="mobile-full-cta border-2 border-royal-gold/50 text-royal-gold font-bold py-3 px-8 rounded-xl hover:bg-royal-gold hover:text-royal-maroon transition-all flex items-center justify-center gap-3"
               >
                 <HiCamera size={20} />
                 @{settings.instagram}

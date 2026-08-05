@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import ItemTile from "@/components/ItemTile";
-import { HiSearch, HiEmojiSad, HiFire } from "react-icons/hi";
+import { HiSearch, HiViewGrid, HiRefresh } from "react-icons/hi";
 
 interface Flavor {
   name: string;
@@ -39,17 +39,25 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [tick, setTick] = useState(0);
   const categories = Array.from(new Set(items.map((i) => i.category)));
 
   useEffect(() => {
+    setLoading(true);
+    setError("");
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), 8000);
-    fetch("/api/menu", { signal: c.signal }).then(r => { clearTimeout(t); return r.json(); }).then(d => {
+    fetch("/api/menu", { signal: c.signal }).then(r => { clearTimeout(t); if (!r.ok) throw new Error("Failed to load menu"); return r.json(); }).then(d => {
       if (Array.isArray(d)) setItems(d);
       setLoading(false);
-    }).catch(() => { clearTimeout(t); setLoading(false); });
+    }).catch((err: any) => {
+      clearTimeout(t);
+      if (err?.name !== "AbortError") setError("Unable to load the menu. Please check your connection.");
+      setLoading(false);
+    });
     return () => { clearTimeout(t); c.abort(); };
-  }, []);
+  }, [tick]);
 
   const filtered = items.filter((item) => {
     const matchCategory =
@@ -67,7 +75,7 @@ export default function MenuPage() {
       <div className="text-center mb-10">
         <div className="flex items-center justify-center gap-3 mb-2">
           <div className="h-px w-8 bg-royal-gold/40" />
-          <HiFire className="text-royal-gold" size={22} />
+          <HiViewGrid className="text-royal-gold" size={22} />
           <div className="h-px w-8 bg-royal-gold/40" />
         </div>
         <h1 className="font-heading text-4xl sm:text-5xl font-bold text-royal-maroon dark:text-royal-gold">
@@ -78,9 +86,13 @@ export default function MenuPage() {
 
       {/* Search Bar */}
       <div className="max-w-md mx-auto mb-8">
+        <label htmlFor="menu-search" className="sr-only">
+          {t("menu.search")}
+        </label>
         <div className="relative">
           <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
+            id="menu-search"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -120,22 +132,25 @@ export default function MenuPage() {
       {/* Items Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24">
-          <div className="relative w-24 h-24 mb-6">
+          <div className="relative w-16 h-16 mb-6">
             <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
-            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
-          </div>
-          <div className="flex gap-3 text-3xl mb-4">
-            <span className="animate-float-delay-1">🍕</span>
-            <span className="animate-float-delay-2">🍔</span>
-            <span className="animate-float-delay-3">🌮</span>
-            <span className="animate-float-delay-4">🥗</span>
-            <span className="animate-float-delay-5">🍰</span>
           </div>
           <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Loading Menu...</p>
         </div>
+      ) : error ? (
+        <div className="text-center py-20">
+          <HiSearch className="mx-auto mb-4 text-red-400" size={60} />
+          <p className="text-red-500 dark:text-red-400 text-lg font-medium">{error}</p>
+          <button
+            onClick={() => setTick((t) => t + 1)}
+            className="mt-4 royal-btn inline-flex items-center gap-2 text-sm py-2 px-4"
+          >
+            <HiRefresh size={16} /> Retry
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
-          <HiEmojiSad className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={60} />
+          <HiSearch className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={60} />
           <p className="text-gray-600 dark:text-gray-400 text-lg">{t("menu.no_items")}</p>
         </div>
       ) : (

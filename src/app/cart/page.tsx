@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
@@ -26,6 +26,22 @@ export default function CartPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [waNumber, setWaNumber] = useState("918618648069");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const venueRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+  const formStartRef = useRef(Date.now());
+  const honeypotRef = useRef<HTMLInputElement>(null);
+
+  const clearError = (key: string) =>
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
 
   useEffect(() => {
     fetch("/api/settings").then((r) => r.json()).then((d) => {
@@ -63,14 +79,24 @@ export default function CartPage() {
   };
 
   const handleSendWhatsApp = async () => {
-    if (!customerName || !phone || !date || !venue || !time) {
-      alert("Please fill in all customer information fields.");
+    const newErrors: { [key: string]: string } = {};
+    if (!customerName.trim()) newErrors.customerName = "Please enter your name.";
+    if (!phone.trim()) newErrors.phone = "Please enter your phone number.";
+    else if (!/^[6-9]\d{9}$/.test(phone)) newErrors.phone = "Please enter a valid 10-digit Indian phone number starting with 6-9.";
+    if (!date) newErrors.date = "Please select your wedding date.";
+    if (!venue.trim()) newErrors.venue = "Please enter the venue.";
+    if (!time) newErrors.time = "Please select the event time.";
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstField = ["customerName", "phone", "date", "venue", "time"].find((k) => newErrors[k]);
+      if (firstField === "customerName") nameRef.current?.focus();
+      else if (firstField === "phone") phoneRef.current?.focus();
+      else if (firstField === "date") dateRef.current?.focus();
+      else if (firstField === "venue") venueRef.current?.focus();
+      else if (firstField === "time") timeRef.current?.focus();
       return;
     }
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      alert("Please enter a valid 10-digit Indian phone number starting with 6-9.");
-      return;
-    }
+    setErrors({});
     setSending(true);
     const message = formatOrderMessage();
     const url = `https://wa.me/${waNumber}?text=${message}`;
@@ -96,6 +122,8 @@ export default function CartPage() {
           travelCharge,
           subtotal,
           total,
+          website: honeypotRef.current?.value || "",
+          formMs: Date.now() - formStartRef.current,
         }),
       });
       if (!res.ok) {
@@ -188,83 +216,146 @@ export default function CartPage() {
             {t("cart.customer_info")}
           </h2>
           <div className="space-y-4">
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder={t("cart.name")}
-              className="royal-input"
-            />
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder={t("cart.phone")}
-              className="royal-input"
-            />
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="royal-input"
-            />
-            <input
-              type="text"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder={t("cart.venue")}
-              className="royal-input"
-            />
-            <div className="flex gap-2">
+            <div className="absolute -left-[9999px]" aria-hidden="true">
+              <label htmlFor="website-field">Website</label>
               <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="royal-input flex-1"
+                id="website-field"
+                type="text"
+                ref={honeypotRef}
+                tabIndex={-1}
+                autoComplete="off"
               />
-              <div className="flex rounded-xl border border-royal-gold/30 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setAmPm("AM")}
-                  aria-label="Select AM"
-                  className={`px-3 py-2 text-xs font-bold transition ${
-                    amPm === "AM" ? "bg-royal-maroon text-white" : "bg-royal-cream dark:bg-gray-800 text-gray-600"
-                  }`}
-                >
-                  <HiMoon size={14} className="inline mr-1" />AM
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAmPm("PM")}
-                  aria-label="Select PM"
-                  className={`px-3 py-2 text-xs font-bold transition ${
-                    amPm === "PM" ? "bg-royal-maroon text-white" : "bg-royal-cream dark:bg-gray-800 text-gray-600"
-                  }`}
-                >
-                  <HiSun size={14} className="inline mr-1" />PM
-                </button>
+            </div>
+            <div>
+              <label htmlFor="customer-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {t("cart.name")}
+              </label>
+              <input
+                id="customer-name"
+                ref={nameRef}
+                type="text"
+                value={customerName}
+                onChange={(e) => { setCustomerName(e.target.value); clearError("customerName"); }}
+                placeholder={t("cart.name")}
+                aria-invalid={!!errors.customerName}
+                className={`royal-input ${errors.customerName ? "border-red-500" : ""}`}
+              />
+              {errors.customerName && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.customerName}</p>}
+            </div>
+            <div>
+              <label htmlFor="customer-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {t("cart.phone")}
+              </label>
+              <input
+                id="customer-phone"
+                ref={phoneRef}
+                type="tel"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); clearError("phone"); }}
+                placeholder={t("cart.phone")}
+                aria-invalid={!!errors.phone}
+                className={`royal-input ${errors.phone ? "border-red-500" : ""}`}
+              />
+              {errors.phone && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.phone}</p>}
+            </div>
+            <div>
+              <label htmlFor="event-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {t("cart.date")}
+              </label>
+              <input
+                id="event-date"
+                ref={dateRef}
+                type="date"
+                value={date}
+                onChange={(e) => { setDate(e.target.value); clearError("date"); }}
+                aria-invalid={!!errors.date}
+                className={`royal-input ${errors.date ? "border-red-500" : ""}`}
+              />
+              {errors.date && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.date}</p>}
+            </div>
+            <div>
+              <label htmlFor="event-venue" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {t("cart.venue")}
+              </label>
+              <input
+                id="event-venue"
+                ref={venueRef}
+                type="text"
+                value={venue}
+                onChange={(e) => { setVenue(e.target.value); clearError("venue"); }}
+                placeholder={t("cart.venue")}
+                aria-invalid={!!errors.venue}
+                className={`royal-input ${errors.venue ? "border-red-500" : ""}`}
+              />
+              {errors.venue && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.venue}</p>}
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label htmlFor="event-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  {t("cart.time")}
+                </label>
+                <input
+                  id="event-time"
+                  ref={timeRef}
+                  type="time"
+                  value={time}
+                  onChange={(e) => { setTime(e.target.value); clearError("time"); }}
+                  aria-invalid={!!errors.time}
+                  className={`royal-input w-full ${errors.time ? "border-red-500" : ""}`}
+                />
+                {errors.time && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.time}</p>}
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">AM / PM</span>
+                <div className="flex rounded-xl border border-royal-gold/30 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAmPm("AM")}
+                    aria-label="Select AM"
+                    aria-pressed={amPm === "AM"}
+                    className={`px-3 py-2 text-xs font-bold transition ${
+                      amPm === "AM" ? "bg-royal-maroon text-white" : "bg-royal-cream dark:bg-gray-800 text-gray-600"
+                    }`}
+                  >
+                    <HiMoon size={14} className="inline mr-1" />AM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAmPm("PM")}
+                    aria-label="Select PM"
+                    aria-pressed={amPm === "PM"}
+                    className={`px-3 py-2 text-xs font-bold transition ${
+                      amPm === "PM" ? "bg-royal-maroon text-white" : "bg-royal-cream dark:bg-gray-800 text-gray-600"
+                    }`}
+                  >
+                    <HiSun size={14} className="inline mr-1" />PM
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Meal Type */}
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 -mb-2">Meal Type</p>
-            <div className="flex gap-2">
-              {["Breakfast", "Lunch", "Dinner"].map((meal) => (
-                <button
-                  key={meal}
-                  type="button"
-                  onClick={() => setMealType(meal)}
-                  aria-label={meal}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    mealType === meal
-                      ? "bg-royal-gold text-royal-maroon shadow-md"
-                      : "bg-royal-cream dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-royal-gold/20"
-                  }`}
-                >
-                  {meal}
-                </button>
-              ))}
-            </div>
+            <fieldset>
+              <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Meal Type</legend>
+              <div className="flex gap-2">
+                {["Breakfast", "Lunch", "Dinner"].map((meal) => (
+                  <button
+                    key={meal}
+                    type="button"
+                    onClick={() => setMealType(meal)}
+                    aria-label={meal}
+                    aria-pressed={mealType === meal}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      mealType === meal
+                        ? "bg-royal-gold text-royal-maroon"
+                        : "bg-royal-cream dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-royal-gold/20"
+                    }`}
+                  >
+                    {meal}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             {/* Add Note */}
             <div className="border border-royal-gold/20 rounded-xl overflow-hidden">
@@ -281,7 +372,11 @@ export default function CartPage() {
               </button>
               {noteOpen && (
                 <div className="px-4 pb-4 animate-slide-up">
+                  <label htmlFor="order-note" className="sr-only">
+                    {note ? "Edit Note" : "Add a Note"}
+                  </label>
                   <textarea
+                    id="order-note"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Any special requests or additional information..."
@@ -303,7 +398,7 @@ export default function CartPage() {
           <h2 className="font-heading text-xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
             {t("cart.order_summary")}
           </h2>
-          <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin">
+          <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto pr-1">
             {items.map((item, idx) => (
               <div
                 key={item.key}

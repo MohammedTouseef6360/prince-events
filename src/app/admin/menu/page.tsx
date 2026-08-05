@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import { HiPlus, HiPencil, HiTrash, HiX, HiCheck, HiStar, HiMenu, HiPhotograph, HiArrowLeft } from "react-icons/hi";
 
 interface Flavor {
@@ -37,6 +38,7 @@ interface MenuItem {
 export default function AdminMenuPage() {
   const { t, lang } = useLanguage();
   const router = useRouter();
+  const checking = useAdminSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,18 @@ export default function AdminMenuPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<{ name?: string; price?: string; flavors?: string }>({});
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const priceInputRef = useRef<HTMLInputElement>(null);
+  const flavorsRef = useRef<HTMLDivElement>(null);
+
+  const clearFormError = (key: "name" | "price" | "flavors") =>
+    setFormErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
 
   const [form, setForm] = useState({
     name: "",
@@ -71,10 +85,9 @@ export default function AdminMenuPage() {
   });
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("prince-events-admin");
-    if (!isAdmin) router.push("/admin/login");
+    if (checking) return;
     fetchItems();
-  }, [router]);
+  }, [router, checking]);
 
   const fetchItems = async () => {
     try {
@@ -108,6 +121,7 @@ export default function AdminMenuPage() {
     });
     setEditingId(null);
     setShowForm(false);
+    setFormErrors({});
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,18 +150,18 @@ export default function AdminMenuPage() {
   };
 
   const handleSave = async () => {
-    if (!form.name) {
-      alert("Name is required");
+    const newErrors: { name?: string; price?: string; flavors?: string } = {};
+    if (!form.name.trim()) newErrors.name = "Name is required";
+    if (!form.hasFlavors && !form.price) newErrors.price = "Price is required";
+    if (form.hasFlavors && form.flavors.length === 0) newErrors.flavors = "Add at least one flavor";
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      if (newErrors.name) nameInputRef.current?.focus();
+      else if (newErrors.price) priceInputRef.current?.focus();
+      else if (newErrors.flavors) flavorsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (!form.hasFlavors && !form.price) {
-      alert("Price is required");
-      return;
-    }
-    if (form.hasFlavors && form.flavors.length === 0) {
-      alert("Add at least one flavor");
-      return;
-    }
+    setFormErrors({});
 
     setSaving(true);
     setError("");
@@ -205,6 +219,7 @@ export default function AdminMenuPage() {
     });
     setEditingId(item._id);
     setShowForm(true);
+    setFormErrors({});
   };
 
   const handleDelete = async (id: string) => {
@@ -249,7 +264,7 @@ export default function AdminMenuPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white px-6 py-5 shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button aria-label="Back to dashboard" onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiArrowLeft size={20} />
           </button>
           <div>
@@ -266,7 +281,7 @@ export default function AdminMenuPage() {
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
             <span>Error: {error}</span>
-            <button onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
+            <button aria-label="Dismiss error" onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
           </div>
         )}
         <button
@@ -287,105 +302,160 @@ export default function AdminMenuPage() {
               <h2 className="font-heading text-xl font-bold text-royal-maroon dark:text-royal-gold flex items-center gap-2">
                 {editingId ? <><HiPencil size={20} /> Edit Item</> : <><HiPlus size={20} /> Add New Item</>}
               </h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+              <button onClick={resetForm} aria-label="Close form" className="text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <HiX size={24} />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Name (English)*"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.nameKN}
-                onChange={(e) => setForm((f) => ({ ...f, nameKN: e.target.value }))}
-                placeholder="ಹೆಸರು (Kannada)"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.nameHI}
-                onChange={(e) => setForm((f) => ({ ...f, nameHI: e.target.value }))}
-                placeholder="नाम (Hindi)"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Description (English)"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.descriptionKN}
-                onChange={(e) => setForm((f) => ({ ...f, descriptionKN: e.target.value }))}
-                placeholder="ವಿವರಣೆ (Kannada)"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.descriptionHI}
-                onChange={(e) => setForm((f) => ({ ...f, descriptionHI: e.target.value }))}
-                placeholder="विवरण (Hindi)"
-                className="royal-input"
-              />
-              <input
-                type="number"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: Number(e.target.value) }))}
-                placeholder="Price (₹)*"
-                className="royal-input"
-              />
-              <select
-                value={form.pricingType}
-                onChange={(e) => setForm((f) => ({ ...f, pricingType: e.target.value }))}
-                className="royal-input"
-              >
-                <option value="per_piece">Per Piece</option>
-                <option value="per_plate">Per Plate</option>
-                <option value="per_time">Per Time/Duration</option>
-              </select>
-              <input
-                type="text"
-                value={form.category}
-                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                placeholder="Category"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.pricingLabel}
-                onChange={(e) => setForm((f) => ({ ...f, pricingLabel: e.target.value }))}
-                placeholder='Pricing label (e.g. "Per Plate")'
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.pricingLabelKN}
-                onChange={(e) => setForm((f) => ({ ...f, pricingLabelKN: e.target.value }))}
-                placeholder="Pricing label (Kannada)"
-                className="royal-input"
-              />
-              <input
-                type="text"
-                value={form.pricingLabelHI}
-                onChange={(e) => setForm((f) => ({ ...f, pricingLabelHI: e.target.value }))}
-                placeholder="Pricing label (Hindi)"
-                className="royal-input"
-              />
+              <div>
+                <label htmlFor="item-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Name (English)*</label>
+                <input
+                  id="item-name"
+                  ref={nameInputRef}
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); clearFormError("name"); }}
+                  placeholder="Name (English)*"
+                  aria-invalid={!!formErrors.name}
+                  className={`royal-input ${formErrors.name ? "border-red-500" : ""}`}
+                />
+                {formErrors.name && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{formErrors.name}</p>}
+              </div>
+              <div>
+                <label htmlFor="item-name-kn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">ಹೆಸರು (Kannada)</label>
+                <input
+                  id="item-name-kn"
+                  type="text"
+                  value={form.nameKN}
+                  onChange={(e) => setForm((f) => ({ ...f, nameKN: e.target.value }))}
+                  placeholder="ಹೆಸರು (Kannada)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-name-hi" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">नाम (Hindi)</label>
+                <input
+                  id="item-name-hi"
+                  type="text"
+                  value={form.nameHI}
+                  onChange={(e) => setForm((f) => ({ ...f, nameHI: e.target.value }))}
+                  placeholder="नाम (Hindi)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-desc" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description (English)</label>
+                <input
+                  id="item-desc"
+                  type="text"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Description (English)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-desc-kn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">ವಿವರಣೆ (Kannada)</label>
+                <input
+                  id="item-desc-kn"
+                  type="text"
+                  value={form.descriptionKN}
+                  onChange={(e) => setForm((f) => ({ ...f, descriptionKN: e.target.value }))}
+                  placeholder="ವಿವರಣೆ (Kannada)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-desc-hi" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">विवरण (Hindi)</label>
+                <input
+                  id="item-desc-hi"
+                  type="text"
+                  value={form.descriptionHI}
+                  onChange={(e) => setForm((f) => ({ ...f, descriptionHI: e.target.value }))}
+                  placeholder="विवरण (Hindi)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Price (₹)*</label>
+                <input
+                  id="item-price"
+                  ref={priceInputRef}
+                  type="number"
+                  value={form.price}
+                  onChange={(e) => { setForm((f) => ({ ...f, price: Number(e.target.value) })); clearFormError("price"); }}
+                  placeholder="Price (₹)*"
+                  aria-invalid={!!formErrors.price}
+                  className={`royal-input ${formErrors.price ? "border-red-500" : ""}`}
+                />
+                {formErrors.price && <p role="alert" className="text-red-600 dark:text-red-400 text-xs mt-1">{formErrors.price}</p>}
+              </div>
+              <div>
+                <label htmlFor="item-pricing-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pricing Type</label>
+                <select
+                  id="item-pricing-type"
+                  value={form.pricingType}
+                  onChange={(e) => setForm((f) => ({ ...f, pricingType: e.target.value }))}
+                  className="royal-input"
+                >
+                  <option value="per_piece">Per Piece</option>
+                  <option value="per_plate">Per Plate</option>
+                  <option value="per_time">Per Time/Duration</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="item-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+                <input
+                  id="item-category"
+                  type="text"
+                  value={form.category}
+                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                  placeholder="Category"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-pricing-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pricing Label (English)</label>
+                <input
+                  id="item-pricing-label"
+                  type="text"
+                  value={form.pricingLabel}
+                  onChange={(e) => setForm((f) => ({ ...f, pricingLabel: e.target.value }))}
+                  placeholder='Pricing label (e.g. "Per Plate")'
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-pricing-label-kn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pricing Label (Kannada)</label>
+                <input
+                  id="item-pricing-label-kn"
+                  type="text"
+                  value={form.pricingLabelKN}
+                  onChange={(e) => setForm((f) => ({ ...f, pricingLabelKN: e.target.value }))}
+                  placeholder="Pricing label (Kannada)"
+                  className="royal-input"
+                />
+              </div>
+              <div>
+                <label htmlFor="item-pricing-label-hi" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pricing Label (Hindi)</label>
+                <input
+                  id="item-pricing-label-hi"
+                  type="text"
+                  value={form.pricingLabelHI}
+                  onChange={(e) => setForm((f) => ({ ...f, pricingLabelHI: e.target.value }))}
+                  placeholder="Pricing label (Hindi)"
+                  className="royal-input"
+                />
+              </div>
 
               <div className="sm:col-span-2 lg:col-span-3 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label htmlFor="item-has-flavors" className="relative inline-flex items-center cursor-pointer">
                   <input
+                    id="item-has-flavors"
                     type="checkbox"
                     checked={form.hasFlavors}
-                    onChange={(e) => setForm((f) => ({ ...f, hasFlavors: e.target.checked }))}
+                    onChange={(e) => { setForm((f) => ({ ...f, hasFlavors: e.target.checked })); clearFormError("flavors"); }}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-royal-gold rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-royal-gold"></div>
@@ -394,42 +464,52 @@ export default function AdminMenuPage() {
               </div>
 
               {form.hasFlavors && (
-                <div className="sm:col-span-2 lg:col-span-3 space-y-2">
+                <div ref={flavorsRef} className="sm:col-span-2 lg:col-span-3 space-y-2">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Flavors &amp; Prices</p>
+                  {formErrors.flavors && <p role="alert" className="text-red-600 dark:text-red-400 text-xs">{formErrors.flavors}</p>}
                   {form.flavors.map((f, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={f.name}
-                        onChange={(e) => {
-                          const updated = [...form.flavors];
-                          updated[idx] = { ...updated[idx], name: e.target.value };
-                          setForm((prev) => ({ ...prev, flavors: updated }));
-                        }}
-                        placeholder="Flavor name"
-                        className="royal-input flex-1"
-                      />
-                      <input
-                        type="number"
-                        value={f.price}
-                        onChange={(e) => {
-                          const updated = [...form.flavors];
-                          updated[idx] = { ...updated[idx], price: Number(e.target.value) };
-                          setForm((prev) => ({ ...prev, flavors: updated }));
-                        }}
-                        placeholder="Price"
-                        className="royal-input w-24"
-                      />
+                      <div className="flex-1">
+                        <label htmlFor={`flavor-name-${idx}`} className="sr-only">Flavor {idx + 1} name</label>
+                        <input
+                          id={`flavor-name-${idx}`}
+                          type="text"
+                          value={f.name}
+                          onChange={(e) => {
+                            const updated = [...form.flavors];
+                            updated[idx] = { ...updated[idx], name: e.target.value };
+                            setForm((prev) => ({ ...prev, flavors: updated }));
+                          }}
+                          placeholder="Flavor name"
+                          className="royal-input"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor={`flavor-price-${idx}`} className="sr-only">Flavor {idx + 1} price</label>
+                        <input
+                          id={`flavor-price-${idx}`}
+                          type="number"
+                          value={f.price}
+                          onChange={(e) => {
+                            const updated = [...form.flavors];
+                            updated[idx] = { ...updated[idx], price: Number(e.target.value) };
+                            setForm((prev) => ({ ...prev, flavors: updated }));
+                          }}
+                          placeholder="Price"
+                          className="royal-input w-24"
+                        />
+                      </div>
                       <button
                         onClick={() => setForm((prev) => ({ ...prev, flavors: prev.flavors.filter((_, i) => i !== idx) }))}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                        className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        aria-label={`Remove flavor ${idx + 1}`}
                       >
                         <HiX size={18} />
                       </button>
                     </div>
                   ))}
                   <button
-                    onClick={() => setForm((prev) => ({ ...prev, flavors: [...prev.flavors, { name: "", price: 0 }] }))}
+                    onClick={() => { setForm((prev) => ({ ...prev, flavors: [...prev.flavors, { name: "", price: 0 }] })); clearFormError("flavors"); }}
                     className="flex items-center gap-1 text-sm text-royal-gold font-bold hover:underline"
                   >
                     <HiPlus size={16} /> Add Flavor
@@ -455,13 +535,17 @@ export default function AdminMenuPage() {
                     <HiPhotograph size={16} />
                     {uploading ? "Uploading..." : "Upload Image"}
                   </button>
-                  <input
-                    type="text"
-                    value={form.image}
-                    onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-                    placeholder="Or paste image URL"
-                    className="royal-input flex-1"
-                  />
+                  <div className="flex-1">
+                    <label htmlFor="item-image-url" className="sr-only">Or paste image URL</label>
+                    <input
+                      id="item-image-url"
+                      type="text"
+                      value={form.image}
+                      onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+                      placeholder="Or paste image URL"
+                      className="royal-input"
+                    />
+                  </div>
                   {form.image && (
                     <div className="relative w-16 h-16 rounded overflow-hidden">
                       <Image
@@ -478,8 +562,9 @@ export default function AdminMenuPage() {
 
               {/* Toggles */}
               <div className="flex items-center gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label htmlFor="item-featured" className="flex items-center gap-2 cursor-pointer">
                   <input
+                    id="item-featured"
                     type="checkbox"
                     checked={form.featured}
                     onChange={(e) => setForm((f) => ({ ...f, featured: e.target.checked }))}
@@ -487,8 +572,9 @@ export default function AdminMenuPage() {
                   />
                   <span className="text-sm flex items-center gap-1"><HiStar size={14} className="text-royal-gold" /> Featured</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label htmlFor="item-in-stock" className="flex items-center gap-2 cursor-pointer">
                   <input
+                    id="item-in-stock"
                     type="checkbox"
                     checked={form.inStock}
                     onChange={(e) => setForm((f) => ({ ...f, inStock: e.target.checked }))}
@@ -578,14 +664,16 @@ export default function AdminMenuPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
+                          aria-label={`Edit ${item.name}`}
+                          className="p-3 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
                           <HiPencil size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(item._id)}
                           disabled={deleting === item._id}
-                          className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label={`Delete ${item.name}`}
+                          className="p-3 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
                           {deleting === item._id ? <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /> : <HiTrash size={16} />}
                         </button>

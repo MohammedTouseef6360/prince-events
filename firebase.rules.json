@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "menu": {
+      ".read": true,
+      ".write": false
+    },
+
+    "gallery": {
+      ".read": true,
+      ".write": false
+    },
+
+    "testimonials": {
+      ".read": true,
+      ".write": false
+    },
+
+    "settings": {
+      ".read": true,
+      ".write": false
+    },
+
+    "orders": {
+      "$orderId": {
+        ".read": "auth != null && auth.uid === $orderId",
+        ".write": false
+      }
+    }
+  }
+}

@@ -4,11 +4,13 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import { HiPlus, HiTrash, HiPhotograph, HiArrowLeft } from "react-icons/hi";
 
 export default function AdminGalleryPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const checking = useAdminSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<any[]>([]);
   const [caption, setCaption] = useState("");
@@ -23,12 +25,9 @@ export default function AdminGalleryPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAdmin = localStorage.getItem("prince-events-admin");
-      if (!isAdmin) router.push("/admin/login");
-    }
+    if (checking) return;
     fetchImages();
-  }, [router]);
+  }, [router, checking]);
 
   const fetchImages = async () => {
     try {
@@ -110,7 +109,7 @@ export default function AdminGalleryPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white px-6 py-5 shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button aria-label="Back to dashboard" onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiArrowLeft size={20} />
           </button>
           <div>
@@ -127,7 +126,7 @@ export default function AdminGalleryPage() {
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
             <span>Error: {error}</span>
-            <button onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
+            <button aria-label="Dismiss error" onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
           </div>
         )}
         <div className="royal-card p-6 mb-6">
@@ -136,59 +135,87 @@ export default function AdminGalleryPage() {
             Add Image
           </h2>
           <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              className="flex-1 royal-input"
-            />
-            <input
-              type="text"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Or paste image URL"
-              className="flex-1 royal-input"
-            />
-            <input
-              type="text"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Caption"
-              className="flex-1 royal-input"
-            />
-            <input
-              type="text"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder="Venue (optional)"
-              className="flex-1 royal-input"
-            />
-            <input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="flex-1 royal-input"
-            />
-            <select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              className="flex-1 royal-input"
-            >
-              <option value="">Event type</option>
-              <option value="Wedding">Wedding</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Birthday">Birthday</option>
-              <option value="Engagement">Engagement</option>
-              <option value="Custom">Custom</option>
-            </select>
-            {eventType === "Custom" && (
+            <div className="flex-1">
+              <label htmlFor="gallery-file" className="sr-only">Upload image file</label>
               <input
-                type="text"
-                value={customEventType}
-                onChange={(e) => setCustomEventType(e.target.value)}
-                placeholder="Enter custom event type"
-                className="flex-1 royal-input"
+                id="gallery-file"
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="royal-input"
               />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="gallery-url" className="sr-only">Or paste image URL</label>
+              <input
+                id="gallery-url"
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="Or paste image URL"
+                className="royal-input"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="gallery-caption" className="sr-only">Caption</label>
+              <input
+                id="gallery-caption"
+                type="text"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Caption"
+                className="royal-input"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="gallery-venue" className="sr-only">Venue (optional)</label>
+              <input
+                id="gallery-venue"
+                type="text"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                placeholder="Venue (optional)"
+                className="royal-input"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="gallery-date" className="sr-only">Event date</label>
+              <input
+                id="gallery-date"
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="royal-input"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="gallery-event-type" className="sr-only">Event type</label>
+              <select
+                id="gallery-event-type"
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+                className="royal-input"
+              >
+                <option value="">Event type</option>
+                <option value="Wedding">Wedding</option>
+                <option value="Corporate">Corporate</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Engagement">Engagement</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            {eventType === "Custom" && (
+              <div className="flex-1">
+                <label htmlFor="gallery-custom-type" className="sr-only">Enter custom event type</label>
+                <input
+                  id="gallery-custom-type"
+                  type="text"
+                  value={customEventType}
+                  onChange={(e) => setCustomEventType(e.target.value)}
+                  placeholder="Enter custom event type"
+                  className="royal-input"
+                />
+              </div>
             )}
             <button
               onClick={handleUpload}
@@ -215,7 +242,8 @@ export default function AdminGalleryPage() {
                 <button
                   onClick={() => handleDelete(img._id)}
                   disabled={deleting === img._id}
-                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow-lg disabled:opacity-100"
+                  aria-label={`Delete image${img.caption ? `: ${img.caption}` : ""}`}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition shadow-lg disabled:opacity-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   {deleting === img._id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <HiTrash size={16} />}
                 </button>

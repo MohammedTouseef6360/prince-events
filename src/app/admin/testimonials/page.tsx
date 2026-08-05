@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
-import { HiPlus, HiTrash, HiStar, HiHeart, HiEmojiHappy, HiArrowLeft } from "react-icons/hi";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { HiPlus, HiTrash, HiStar, HiArrowLeft } from "react-icons/hi";
 
 export default function AdminTestimonialsPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const checking = useAdminSession();
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -21,12 +23,9 @@ export default function AdminTestimonialsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAdmin = localStorage.getItem("prince-events-admin");
-      if (!isAdmin) router.push("/admin/login");
-    }
+    if (checking) return;
     fetchTestimonials();
-  }, [router]);
+  }, [router, checking]);
 
   const fetchTestimonials = async () => {
     try {
@@ -91,12 +90,12 @@ export default function AdminTestimonialsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white px-6 py-5 shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button aria-label="Back to dashboard" onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiArrowLeft size={20} />
           </button>
           <div>
             <h1 className="font-heading text-2xl font-bold text-royal-gold tracking-wide flex items-center gap-3">
-              <HiHeart size={24} />
+              <HiStar size={24} />
               {t("admin.testimonials")}
             </h1>
             <p className="text-royal-gold/60 text-xs mt-0.5">{testimonials.length} reviews</p>
@@ -108,7 +107,7 @@ export default function AdminTestimonialsPage() {
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
             <span>Error: {error}</span>
-            <button onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
+            <button aria-label="Dismiss error" onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
           </div>
         )}
         <div className="royal-card p-6 mb-6">
@@ -117,60 +116,85 @@ export default function AdminTestimonialsPage() {
             Add Testimonial
           </h2>
           <div className="space-y-3">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Customer Name"
-              className="royal-input"
-            />
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Testimonial Message"
-              className="royal-input h-24 resize-none"
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Rating:</span>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className={`text-2xl transition hover:scale-110 ${
-                    star <= rating ? "text-royal-gold" : "text-gray-300 dark:text-gray-600"
-                  }`}
-                >
-                  <HiStar className={star <= rating ? "fill-current" : ""} />
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              value={photo}
-              onChange={(e) => setPhoto(e.target.value)}
-              placeholder="Photo URL (optional)"
-              className="royal-input"
-            />
-            <select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              className="royal-input"
-            >
-              <option value="">Select event type (optional)</option>
-              <option value="Wedding">Wedding</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Birthday">Birthday</option>
-              <option value="Engagement">Engagement</option>
-              <option value="Custom">Custom</option>
-            </select>
-            {eventType === "Custom" && (
+            <div>
+              <label htmlFor="testimonial-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Customer Name</label>
               <input
+                id="testimonial-name"
                 type="text"
-                value={customEventType}
-                onChange={(e) => setCustomEventType(e.target.value)}
-                placeholder="Enter custom event type"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Customer Name"
                 className="royal-input"
               />
+            </div>
+            <div>
+              <label htmlFor="testimonial-message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Testimonial Message</label>
+              <textarea
+                id="testimonial-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Testimonial Message"
+                className="royal-input h-24 resize-none"
+              />
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Rating:</span>
+              <div className="flex items-center gap-2" role="radiogroup" aria-label="Rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    role="radio"
+                    aria-checked={rating === star}
+                    aria-label={`${star} star${star > 1 ? "s" : ""}`}
+                    className={`text-2xl transition hover:scale-110 ${
+                      star <= rating ? "text-royal-gold" : "text-gray-300 dark:text-gray-600"
+                    }`}
+                  >
+                    <HiStar aria-hidden="true" className={star <= rating ? "fill-current" : ""} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label htmlFor="testimonial-photo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Photo URL (optional)</label>
+              <input
+                id="testimonial-photo"
+                type="text"
+                value={photo}
+                onChange={(e) => setPhoto(e.target.value)}
+                placeholder="Photo URL (optional)"
+                className="royal-input"
+              />
+            </div>
+            <div>
+              <label htmlFor="testimonial-event-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Event Type (optional)</label>
+              <select
+                id="testimonial-event-type"
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+                className="royal-input"
+              >
+                <option value="">Select event type (optional)</option>
+                <option value="Wedding">Wedding</option>
+                <option value="Corporate">Corporate</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Engagement">Engagement</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            {eventType === "Custom" && (
+              <div>
+                <label htmlFor="testimonial-custom-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Custom Event Type</label>
+                <input
+                  id="testimonial-custom-type"
+                  type="text"
+                  value={customEventType}
+                  onChange={(e) => setCustomEventType(e.target.value)}
+                  placeholder="Enter custom event type"
+                  className="royal-input"
+                />
+              </div>
             )}
             <button onClick={handleAdd} disabled={adding} className="royal-btn flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
               {adding ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <HiPlus size={20} />}
@@ -188,7 +212,7 @@ export default function AdminTestimonialsPage() {
                     {t.photo ? (
                       <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
                     ) : (
-                      <HiEmojiHappy className="text-royal-gold" size={18} />
+                      <HiStar className="text-royal-gold" size={18} />
                     )}
                   </div>
                   <div>
@@ -218,7 +242,8 @@ export default function AdminTestimonialsPage() {
               <button
                 onClick={() => handleDelete(t._id)}
                 disabled={deleting === t._id}
-                className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={`Delete testimonial from ${t.name}`}
+                className="p-3 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition ml-3 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 {deleting === t._id ? <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /> : <HiTrash size={16} />}
               </button>
@@ -226,7 +251,7 @@ export default function AdminTestimonialsPage() {
           ))}
           {testimonials.length === 0 && (
             <div className="text-center py-12 text-gray-600">
-              <HiHeart size={40} className="mx-auto mb-2 text-gray-300" />
+              <HiStar size={40} className="mx-auto mb-2 text-gray-300" />
               No testimonials yet. Add your first review!
             </div>
           )}

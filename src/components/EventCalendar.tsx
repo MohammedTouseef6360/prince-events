@@ -75,7 +75,7 @@ export default function EventCalendar({ orders, onDateClick }: EventCalendarProp
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-maroon to-royal-maroon-dark px-5 py-4">
         <div className="flex items-center justify-between">
-          <button onClick={prevMonth} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button onClick={prevMonth} aria-label="Previous month" className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiChevronLeft size={20} />
           </button>
           <div className="text-center">
@@ -86,7 +86,7 @@ export default function EventCalendar({ orders, onDateClick }: EventCalendarProp
               {totalOrdersThisMonth} events · ₹{revenueThisMonth.toLocaleString()}
             </p>
           </div>
-          <button onClick={nextMonth} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button onClick={nextMonth} aria-label="Next month" className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiChevronRight size={20} />
           </button>
         </div>

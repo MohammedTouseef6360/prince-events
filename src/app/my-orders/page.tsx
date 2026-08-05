@@ -8,7 +8,7 @@ import { useSettings } from "@/lib/useSettings";
 import { useCart } from "@/context/CartContext";
 import dynamic from "next/dynamic";
 const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
-import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiEmojiSad, HiClipboardList, HiChat, HiRefresh } from "react-icons/hi";
+import { HiSearch, HiBadgeCheck, HiClock, HiCog, HiTruck, HiHome, HiArrowLeft, HiDocumentDownload, HiClipboardList, HiChat, HiRefresh } from "react-icons/hi";
 
 interface OrderItem {
   itemName: string;
@@ -32,6 +32,7 @@ interface Order {
   total: number;
   status: "pending" | "confirmed" | "preparing" | "delivered";
   invoiceImage?: string;
+  invoiceNo?: string;
   createdAt: string;
 }
 
@@ -155,7 +156,11 @@ export default function MyOrdersPage() {
 
       <form onSubmit={handleSearch} className="max-w-md mx-auto mb-8">
         <div className="flex gap-2">
+          <label htmlFor="order-phone" className="sr-only">
+            {t("my_orders.enter_phone")}
+          </label>
           <input
+            id="order-phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -176,9 +181,8 @@ export default function MyOrdersPage() {
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="relative w-20 h-20 mb-4">
+          <div className="relative w-16 h-16 mb-4">
             <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
-            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
           </div>
           <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Searching orders...</p>
         </div>
@@ -192,7 +196,7 @@ export default function MyOrdersPage() {
 
       {!loading && searched && orders.length === 0 && !error && (
         <div className="text-center py-12">
-          <HiEmojiSad className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={60} />
+          <HiSearch className="mx-auto mb-4 text-gray-300 dark:text-gray-600" size={60} />
           <p className="text-xl font-bold text-royal-maroon dark:text-royal-gold mb-2">
             {t("my_orders.empty")}
           </p>
@@ -285,6 +289,7 @@ export default function MyOrdersPage() {
                         subtotal: order.subtotal,
                         travelCharge: order.travelCharge,
                         total: order.total,
+                        invoiceNo: order.invoiceNo,
                       }}
                       invoiceImageUrl={order.invoiceImage}
                     />

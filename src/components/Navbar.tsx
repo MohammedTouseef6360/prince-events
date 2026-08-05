@@ -7,7 +7,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
 import { useDarkMode } from "@/context/DarkModeContext";
 import { useSettings, extractPhoneDigits } from "@/lib/useSettings";
-import { HiMenu, HiX, HiShoppingCart, HiSun, HiMoon, HiArrowLeft, HiHome, HiFire, HiPhotograph, HiChat, HiMail, HiLocationMarker, HiPhone, HiClipboardList } from "react-icons/hi";
+import { useDialog } from "@/hooks/useDialog";
+import { HiMenu, HiX, HiShoppingCart, HiSun, HiMoon, HiArrowLeft, HiHome, HiPhotograph, HiChat, HiMail, HiLocationMarker, HiPhone, HiClipboardList, HiViewGrid } from "react-icons/hi";
 
 const languages = [
   { code: "en", label: "EN" },
@@ -22,7 +23,7 @@ export default function Navbar() {
   const { settings } = useSettings();
   const pathname = usePathname();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isOpen: sidebarOpen, close: closeSidebar, open: openSidebar, dialogRef: sidebarRef } = useDialog();
   const [langOpen, setLangOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -52,7 +53,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-40 bg-royal-maroon/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b-2 border-royal-gold">
+      <nav className="sticky top-0 z-40 bg-royal-maroon dark:bg-gray-900 border-b-2 border-royal-gold">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
@@ -66,16 +67,18 @@ export default function Navbar() {
                 </button>
               )}
               <button
-                onClick={() => setSidebarOpen(true)}
+                onClick={openSidebar}
                 className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 active:scale-110 transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
                 aria-label="Toggle menu"
+                aria-expanded={sidebarOpen}
+                aria-controls="mobile-sidebar"
               >
                 <HiMenu size={28} />
               </button>
             </div>
 
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-heading text-xl sm:text-2xl font-bold text-royal-gold tracking-wide">
+            <Link href="/" className="flex items-center gap-2 min-w-0">
+              <span className="font-heading text-xl sm:text-2xl font-bold text-royal-gold tracking-wide truncate">
                 {settings.businessName}
               </span>
             </Link>
@@ -85,12 +88,14 @@ export default function Navbar() {
                 <button
                   onClick={() => setLangOpen(!langOpen)}
                   className="flex items-center gap-1 text-royal-gold hover:text-royal-gold-light px-2 py-1 text-xs rounded hover:bg-white/10 transition font-bold"
+                  aria-expanded={langOpen}
+                  aria-haspopup="menu"
                 >
                   {lang.toUpperCase()}
                   <svg className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {langOpen && (
-                  <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-royal-gold/30 z-50 min-w-[120px]">
+                  <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-royal-gold/30 z-50 min-w-[120px]">
                     {languages.map((l) => (
                       <button
                         key={l.code}
@@ -131,9 +136,9 @@ export default function Navbar() {
 
               <Link
                 href="/menu"
-                className="hidden sm:inline-flex bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-emerald-600/30 active:scale-95 min-h-[40px] items-center gap-1.5"
+                className="hidden sm:inline-flex bg-royal-gold hover:bg-royal-gold-light text-royal-maroon font-bold text-xs px-4 py-2 rounded-xl transition-all active:scale-95 min-h-[40px] items-center gap-1.5"
               >
-                <HiFire size={16} /> Order Now
+                Order Now
               </Link>
 
               <div className="sm:hidden relative">
@@ -141,11 +146,13 @@ export default function Navbar() {
                   onClick={() => setLangOpen(!langOpen)}
                   className="text-royal-gold hover:text-royal-gold-light px-2 py-1 rounded hover:bg-white/10 text-sm font-bold"
                   aria-label="Change language"
+                  aria-expanded={langOpen}
+                  aria-haspopup="menu"
                 >
                   {lang.toUpperCase()}
                 </button>
                 {langOpen && (
-                  <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-royal-gold/30 z-50">
+                  <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-royal-gold/30 z-50">
                     {languages.map((l) => (
                       <button
                         key={l.code}
@@ -173,14 +180,20 @@ export default function Navbar() {
       {/* Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-50"
+          onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-white to-royal-cream dark:from-gray-900 dark:to-gray-950 shadow-2xl z-50 transform transition-all duration-300 ease-out border-r-2 border-royal-gold/30 ${
+        ref={sidebarRef}
+        id="mobile-sidebar"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("nav.menu")}
+        tabIndex={-1}
+        className={`fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-white to-royal-cream dark:from-gray-900 dark:to-gray-950 z-50 transform transition-all duration-300 ease-out border-r-2 border-royal-gold/30 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -196,8 +209,8 @@ export default function Navbar() {
               </p>
             </div>
             <button
-              onClick={() => setSidebarOpen(false)}
-              className="text-royal-gold hover:text-royal-gold-light p-2 rounded-full hover:bg-white/10 transition"
+              onClick={() => closeSidebar()}
+              className="text-royal-gold hover:text-royal-gold-light p-3 rounded-full hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Close menu"
             >
               <HiX size={22} />
@@ -207,7 +220,7 @@ export default function Navbar() {
         </div>
 
         {/* Sidebar Content - Scrollable */}
-        <div className="overflow-y-auto h-[calc(100%-8rem)] scrollbar-thin">
+        <div className="overflow-y-auto h-[calc(100%-8rem)]">
           <div className="p-5 space-y-2">
             <p className="text-xs font-bold uppercase tracking-wider text-royal-gold/60 dark:text-royal-gold/40 px-3 py-2">
               {t("sidebar.quick_links")}
@@ -215,7 +228,7 @@ export default function Navbar() {
 
             <Link
               href="/"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => closeSidebar()}
               className={`sidebar-link group ${pathname === "/" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
@@ -226,18 +239,18 @@ export default function Navbar() {
 
             <Link
               href="/menu"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => closeSidebar()}
               className={`sidebar-link group ${pathname === "/menu" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
-                <HiFire className="text-royal-maroon dark:text-royal-gold" size={18} />
+                <HiViewGrid className="text-royal-maroon dark:text-royal-gold" size={18} />
               </div>
               <span>{t("nav.menu")}</span>
             </Link>
 
             <Link
               href="/gallery"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => closeSidebar()}
               className={`sidebar-link group ${pathname === "/gallery" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
@@ -248,7 +261,7 @@ export default function Navbar() {
 
             <Link
               href="/my-orders"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => closeSidebar()}
               className={`sidebar-link group ${pathname === "/my-orders" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
@@ -259,7 +272,7 @@ export default function Navbar() {
 
             <Link
               href="/cart"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => closeSidebar()}
               className={`sidebar-link group ${pathname === "/cart" ? "font-bold text-royal-gold underline underline-offset-4" : ""}`}
             >
               <div className="w-9 h-9 rounded-lg bg-royal-maroon/10 dark:bg-royal-gold/10 flex items-center justify-center group-hover:bg-royal-maroon/20 dark:group-hover:bg-royal-gold/20 transition">
@@ -277,10 +290,10 @@ export default function Navbar() {
             <div className="px-4 pt-2">
               <Link
                 href="/menu"
-                onClick={() => setSidebarOpen(false)}
-                className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-600/30 active:scale-95 min-h-[48px]"
+                onClick={() => closeSidebar()}
+                className="w-full bg-royal-gold hover:bg-royal-gold-light text-royal-maroon font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 min-h-[48px]"
               >
-                <HiFire size={18} /> Order Now
+                Order Now
               </Link>
             </div>
 

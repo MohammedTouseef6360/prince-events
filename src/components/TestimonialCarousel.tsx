@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useDialog } from "@/hooks/useDialog";
 import { HiStar, HiChevronLeft, HiChevronRight, HiX } from "react-icons/hi";
 
 interface Testimonial {
@@ -31,6 +32,18 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
   const [fadeKey, setFadeKey] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedFb, setSelectedFb] = useState<Testimonial | null>(null);
+  const { setIsOpen: setPanelIsOpen, dialogRef } = useDialog({ initialOpen: false });
+
+  useEffect(() => {
+    setPanelIsOpen(panelOpen);
+  }, [panelOpen, setPanelIsOpen]);
+
+  const openPanel = (fb: Testimonial) => {
+    setSelectedFb(fb);
+    setPanelOpen(true);
+  };
+
+  const closePanel = () => setPanelOpen(false);
 
   const goTo = useCallback((index: number) => {
     setCurrent(index);
@@ -46,14 +59,10 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
   }, [current, testimonials.length, goTo]);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
   }, [next]);
-
-  const openPanel = (fb: Testimonial) => {
-    setSelectedFb(fb);
-    setPanelOpen(true);
-  };
 
   if (!testimonials.length) return null;
 
@@ -63,9 +72,11 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
     <>
       <div className="relative max-w-2xl mx-auto">
         <div key={fadeKey} className="royal-card p-8 text-center animate-fade-in">
-          <div
-            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 overflow-hidden bg-royal-gold/10 flex items-center justify-center border-2 border-royal-gold/30 cursor-pointer hover:border-royal-gold transition-all"
+          <button
+            type="button"
             onClick={() => openPanel(fb)}
+            aria-label={`Read full review by ${fb.name}`}
+            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 overflow-hidden bg-royal-gold/10 flex items-center justify-center border-2 border-royal-gold/30 cursor-pointer hover:border-royal-gold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal-gold"
           >
             {fb.photo ? (
               <img
@@ -76,13 +87,14 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
             ) : (
               <PersonIcon />
             )}
-          </div>
-          <p
-            className="text-gray-600 dark:text-gray-400 italic mb-5 leading-relaxed text-base min-h-[4rem] flex items-center justify-center cursor-pointer hover:text-royal-maroon dark:hover:text-royal-gold transition-colors"
+          </button>
+          <button
+            type="button"
             onClick={() => openPanel(fb)}
+            className="text-gray-600 dark:text-gray-400 italic mb-5 leading-relaxed text-base min-h-[4rem] flex items-center justify-center cursor-pointer hover:text-royal-maroon dark:hover:text-royal-gold transition-colors text-left"
           >
             &ldquo;{fb.message.length > 100 ? fb.message.slice(0, 100) + "..." : fb.message}&rdquo;
-          </p>
+          </button>
           {fb.message.length > 100 && (
             <button
               onClick={() => openPanel(fb)}
@@ -91,10 +103,15 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
               Read full review &rarr;
             </button>
           )}
-          <div className="flex items-center justify-center gap-1 text-royal-gold mb-3">
+          <div
+            className="flex items-center justify-center gap-1 text-royal-gold mb-3"
+            role="img"
+            aria-label={`Rated ${fb.rating} out of 5 stars`}
+          >
             {Array.from({ length: 5 }, (_, si) => (
               <HiStar
                 key={si}
+                aria-hidden="true"
                 className={
                   si < fb.rating
                     ? "text-royal-gold fill-current"
@@ -122,14 +139,14 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
           <>
             <button
               onClick={prev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-royal-gold/20 flex items-center justify-center text-royal-maroon dark:text-royal-gold hover:bg-royal-gold hover:text-white transition-all z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-11 h-11 rounded-full bg-white dark:bg-gray-800 border border-royal-gold/20 flex items-center justify-center text-royal-maroon dark:text-royal-gold hover:bg-royal-gold hover:text-white transition-all z-10"
               aria-label="Previous testimonial"
             >
               <HiChevronLeft size={20} />
             </button>
             <button
               onClick={next}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-royal-gold/20 flex items-center justify-center text-royal-maroon dark:text-royal-gold hover:bg-royal-gold hover:text-white transition-all z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-11 h-11 rounded-full bg-white dark:bg-gray-800 border border-royal-gold/20 flex items-center justify-center text-royal-maroon dark:text-royal-gold hover:bg-royal-gold hover:text-white transition-all z-10"
               aria-label="Next testimonial"
             >
               <HiChevronRight size={20} />
@@ -156,11 +173,16 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
       {/* Feedback Detail Panel */}
       {panelOpen && selectedFb && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setPanelOpen(false)}
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Feedback detail"
+          tabIndex={-1}
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 animate-fade-in"
+          onClick={closePanel}
         >
           <div
-            className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-royal-gold/20 animate-scale-in p-8"
+            className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-royal-gold/20 animate-scale-in p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -168,8 +190,9 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
                 Feedback Detail
               </h3>
               <button
-                onClick={() => setPanelOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                onClick={closePanel}
+                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center justify-center min-h-[44px] min-w-[44px]"
+                aria-label="Close feedback detail"
               >
                 <HiX size={20} />
               </button>
@@ -193,10 +216,11 @@ export default function TestimonialCarousel({ testimonials }: { testimonials: Te
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1 mb-4">
+            <div className="flex items-center gap-1 mb-4" role="img" aria-label={`Rated ${selectedFb.rating} out of 5 stars`}>
               {Array.from({ length: 5 }, (_, si) => (
                 <HiStar
                   key={si}
+                  aria-hidden="true"
                   className={si < selectedFb.rating ? "text-royal-gold fill-current" : "text-gray-300"}
                   size={20}
                 />

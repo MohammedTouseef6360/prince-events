@@ -17,14 +17,16 @@ export default function AdminLoginPage() {
     setLoggingIn(true);
     setError("");
     try {
-      const res = await fetch("/api/settings");
-      const data = await res.json();
-      const adminPassword = data?.adminPassword || "prince@123";
-      if (password === adminPassword) {
-        localStorage.setItem("prince-events-admin", "true");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
         router.push("/admin/dashboard");
       } else {
-        setError("Invalid password");
+        const data = await res.json().catch(() => null);
+        setError(data?.error === "Invalid password" ? "Invalid password" : "Login failed");
       }
     } catch {
       setError("Network error — could not reach server");
@@ -36,7 +38,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-royal-maroon to-royal-burgundy p-4">
       <form
         onSubmit={handleLogin}
-        className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm p-8 sm:p-10 w-full max-w-md rounded-2xl shadow-2xl border border-royal-gold/20 animate-fade-in"
+        className="bg-white dark:bg-gray-900 p-8 sm:p-10 w-full max-w-md rounded-2xl border border-royal-gold/20 animate-fade-in"
       >
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full bg-royal-gold/15 flex items-center justify-center mx-auto mb-4">
@@ -58,21 +60,27 @@ export default function AdminLoginPage() {
         )}
 
         <div className="space-y-4">
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError("");
-            }}
-            placeholder={t("admin.password")}
-            className="royal-input text-lg text-center tracking-widest"
-            autoFocus
-          />
+          <div>
+            <label htmlFor="admin-password" className="sr-only">
+              {t("admin.password")}
+            </label>
+            <input
+              id="admin-password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              placeholder={t("admin.password")}
+              className="royal-input text-lg text-center tracking-widest"
+              autoFocus
+            />
+          </div>
           <button
             type="submit"
             disabled={loggingIn}
-            className="w-full bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white font-bold py-3.5 px-6 rounded-xl hover:from-royal-maroon-light hover:to-royal-maroon transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white font-bold py-3.5 px-6 rounded-xl hover:from-royal-maroon-light hover:to-royal-maroon transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loggingIn ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

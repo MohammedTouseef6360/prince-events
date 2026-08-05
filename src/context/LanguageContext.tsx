@@ -24,6 +24,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     });
   }, [lang]);
 
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const t = (key: string): string => {
     const keys = key.split(".");
     let value: any = translations;

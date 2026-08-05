@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { HiX, HiPhotograph, HiSearch, HiCalendar, HiLocationMarker, HiStar } from "react-icons/hi";
+import { useDialog } from "@/hooks/useDialog";
+import { HiX, HiPhotograph, HiSearch, HiCalendar, HiLocationMarker, HiStar, HiRefresh } from "react-icons/hi";
 
 interface GalleryItem {
   _id: string;
@@ -32,16 +33,24 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const [tick, setTick] = useState(0);
+  const { setIsOpen: setLightboxOpen, dialogRef } = useDialog({ initialOpen: false });
 
   useEffect(() => {
+    setLightboxOpen(!!selected);
+  }, [selected, setLightboxOpen]);
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), 8000);
-    fetch("/api/gallery", { signal: c.signal }).then(r => { clearTimeout(t); return r.json(); }).then(d => {
+    fetch("/api/gallery", { signal: c.signal }).then(r => { clearTimeout(t); if (!r.ok) throw new Error("Failed to load gallery"); return r.json(); }).then(d => {
       if (Array.isArray(d)) setImages(d);
       setLoading(false);
-    }).catch(() => { clearTimeout(t); setError("Failed to load gallery"); setLoading(false); });
+    }).catch((err: any) => { clearTimeout(t); setError(err?.name === "AbortError" ? "Loading timed out" : "Failed to load gallery"); setLoading(false); });
     return () => { clearTimeout(t); c.abort(); };
-  }, []);
+  }, [tick]);
 
   const filtered = activeTab === "All" ? images : images.filter(img => img.eventType === activeTab);
 
@@ -80,21 +89,19 @@ export default function GalleryPage() {
           <HiPhotograph className="mx-auto mb-4 text-red-400" size={60} />
           <p className="text-red-500 dark:text-red-400 text-lg font-medium">{error}</p>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Please try refreshing the page</p>
+          <button
+            onClick={() => setTick((t) => t + 1)}
+            className="mt-4 royal-btn inline-flex items-center gap-2 text-sm py-2 px-4"
+          >
+            <HiRefresh size={16} /> Retry
+          </button>
         </div>
       )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24">
-          <div className="relative w-24 h-24 mb-6">
+          <div className="relative w-16 h-16 mb-6">
             <div className="absolute inset-0 border-4 border-royal-gold/20 border-t-royal-gold rounded-full animate-spin" />
-            <span className="absolute inset-0 flex items-center justify-center text-3xl animate-bounce-food">🍽️</span>
-          </div>
-          <div className="flex gap-3 text-3xl mb-4">
-            <span className="animate-float-delay-1">🍕</span>
-            <span className="animate-float-delay-2">🍔</span>
-            <span className="animate-float-delay-3">🌮</span>
-            <span className="animate-float-delay-4">🥗</span>
-            <span className="animate-float-delay-5">🍰</span>
           </div>
           <p className="text-royal-maroon dark:text-royal-gold font-bold text-lg animate-pulse">Loading Gallery...</p>
         </div>
@@ -113,7 +120,7 @@ export default function GalleryPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
                   activeTab === tab
-                    ? "bg-royal-maroon text-white dark:bg-royal-gold dark:text-royal-maroon shadow-lg"
+                    ? "bg-royal-maroon text-white dark:bg-royal-gold dark:text-royal-maroon"
                     : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-royal-gold/20 hover:text-royal-maroon dark:hover:text-royal-gold"
                 }`}
               >
@@ -129,8 +136,17 @@ export default function GalleryPage() {
               return (
                 <div
                   key={img._id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={caption || "View gallery image"}
                   onClick={() => setSelected(img)}
-                  className="royal-card overflow-hidden cursor-pointer group animate-scale-in hover:-translate-y-2 transition-all duration-300"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(img);
+                    }
+                  }}
+                  className="royal-card overflow-hidden cursor-pointer group animate-scale-in hover:-translate-y-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-royal-gold"
                   style={{ animationDelay: `${(i % 9) * 60}ms` }}
                 >
                   <div className="relative h-56 sm:h-64 overflow-hidden">
@@ -155,7 +171,7 @@ export default function GalleryPage() {
                       <HiSearch size={18} />
                     </div>
                     {img.eventType && (
-                      <span className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-semibold shadow-lg ${
+                      <span className={`absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-semibold ${
                         EVENT_COLORS[img.eventType] || "bg-gray-100 text-gray-700"
                       }`}>
                         {img.eventType}
@@ -179,16 +195,21 @@ export default function GalleryPage() {
       {/* Lightbox */}
       {selected && (
         <div
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4 animate-fade-in backdrop-blur-sm"
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={getCaption(selected) || "Gallery image"}
+          tabIndex={-1}
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4 animate-fade-in"
           onClick={() => setSelected(null)}
         >
           <div
-            className="relative max-w-5xl w-full max-h-[90vh] flex flex-col lg:flex-row bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+            className="relative max-w-5xl w-full max-h-[90vh] flex flex-col lg:flex-row bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-royal-gold/20"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setSelected(null)}
-              className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-royal-gold text-white hover:text-royal-maroon p-2 rounded-full transition-all"
+              className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-royal-gold text-white hover:text-royal-maroon p-3 rounded-full transition-all flex items-center justify-center min-h-[44px] min-w-[44px]"
               aria-label="Close lightbox"
             >
               <HiX size={24} />
@@ -215,9 +236,9 @@ export default function GalleryPage() {
                 </span>
               )}
               {getCaption(selected) && (
-                <h3 className="font-heading text-2xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
+                <h2 className="font-heading text-2xl font-bold text-royal-maroon dark:text-royal-gold mb-4">
                   {getCaption(selected)}
-                </h3>
+                </h2>
               )}
               {selected.eventDate && (
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-3">

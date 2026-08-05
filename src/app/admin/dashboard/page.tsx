@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import EventCalendar from "@/components/EventCalendar";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import {
   HiMenu, HiPhotograph, HiStar, HiCog, HiClipboardList,
   HiTrendingUp, HiClock, HiBadgeCheck, HiTruck, HiShoppingBag,
   HiArrowRight, HiCurrencyRupee, HiChartBar, HiCalendar,
-  HiFire, HiCash, HiUserGroup,
+  HiCash, HiUserGroup,
 } from "react-icons/hi";
 
 interface Order {
@@ -21,6 +22,7 @@ interface Order {
 export default function AdminDashboardPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const checking = useAdminSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState({ totalOrders: 0, pending: 0, confirmed: 0, preparing: 0, delivered: 0, totalItems: 0, revenue: 0 });
   const [calendarData, setCalendarData] = useState<{ date: string; count: number; total: number }[]>([]);
@@ -28,10 +30,7 @@ export default function AdminDashboardPage() {
   const [dashboardError, setDashboardError] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAdmin = localStorage.getItem("prince-events-admin");
-      if (!isAdmin) router.push("/admin/login");
-    }
+    if (checking) return;
     const checkRes = async (r: Response) => {
       if (!r.ok) throw new Error(r.statusText);
       return r.json();
@@ -66,10 +65,10 @@ export default function AdminDashboardPage() {
       setDashboardError(e instanceof Error ? e.message : "Failed to load dashboard data");
       setPageLoading(false);
     });
-  }, [router]);
+  }, [router, checking]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("prince-events-admin");
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     router.push("/admin/login");
   };
 
@@ -141,7 +140,7 @@ export default function AdminDashboardPage() {
         {dashboardError && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
             <span>Error: {dashboardError}</span>
-            <button onClick={() => setDashboardError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
+            <button aria-label="Dismiss error" onClick={() => setDashboardError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
           </div>
         )}
         {pageLoading ? (
@@ -207,7 +206,7 @@ export default function AdminDashboardPage() {
                 {adminLinks.map((link) => {
                   const Icon = link.icon;
                   return (
-                    <Link key={link.href} href={link.href} className="group flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-900 border border-royal-gold/10 hover:border-royal-gold/40 hover:shadow-xl transition-all duration-300">
+                    <Link key={link.href} href={link.href} className="group flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-900 border border-royal-gold/10 hover:border-royal-gold/40 transition-all duration-300">
                       <div className={`bg-gradient-to-br ${link.color} text-white p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform`}>
                         <Icon size={22} />
                       </div>
@@ -286,7 +285,7 @@ export default function AdminDashboardPage() {
             {/* Top Items */}
             <div className="royal-card p-5">
               <div className="flex items-center gap-2 mb-4">
-                <HiFire className="text-royal-gold" size={18} />
+                <HiChartBar className="text-royal-gold" size={18} />
                 <h3 className="font-bold text-sm text-royal-maroon dark:text-royal-gold">Top Selling Items</h3>
               </div>
               {sortedItems.length === 0 ? (

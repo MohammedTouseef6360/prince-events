@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCart } from "@/context/CartContext";
+import { useDialog } from "@/hooks/useDialog";
 import { HiX, HiPlus, HiMinus, HiShoppingCart, HiBadgeCheck } from "react-icons/hi";
 
 interface Flavor {
@@ -45,14 +46,16 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
     item.hasFlavors && item.flavors?.length ? item.flavors[0] : null
   );
 
-  useEffect(() => {
-    requestAnimationFrame(() => setAnimateIn(true));
-  }, []);
-
   const handleClose = () => {
     setAnimateIn(false);
     setTimeout(onClose, 200);
   };
+
+  const { dialogRef } = useDialog({ initialOpen: true, onClose: handleClose });
+
+  useEffect(() => {
+    requestAnimationFrame(() => setAnimateIn(true));
+  }, []);
 
   const activePrice = selectedFlavor?.price ?? item.price;
 
@@ -92,17 +95,22 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
 
   return (
     <div
-      className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${animateIn ? "opacity-100" : "opacity-0"}`}
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={displayName}
+      tabIndex={-1}
+      className={`fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${animateIn ? "opacity-100" : "opacity-0"}`}
       onClick={handleClose}
     >
       <div
-        className={`bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-royal-gold/20 transition-all duration-200 ${animateIn ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}`}
+        className={`bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-royal-gold/20 transition-all duration-200 ${animateIn ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-gray-800/90 p-2 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-700 transition"
+            className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-gray-800/90 p-3 rounded-full hover:bg-white dark:hover:bg-gray-700 transition flex items-center justify-center min-h-[44px] min-w-[44px]"
             aria-label="Close"
           >
             <HiX size={20} />
@@ -138,8 +146,9 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
 
           {item.hasFlavors && item.flavors && item.flavors.length > 0 && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Select Flavor</label>
+              <label htmlFor="flavor-select" className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Select Flavor</label>
               <select
+                id="flavor-select"
                 value={selectedFlavor?.name || ""}
                 onChange={(e) => {
                   const f = item.flavors?.find((x) => x.name === e.target.value);
@@ -172,7 +181,7 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQty(Math.max(0, qty - 1))}
-                className="p-2 rounded-full border border-royal-gold/30 hover:bg-royal-gold/10 transition"
+                className="p-3 rounded-full border border-royal-gold/30 hover:bg-royal-gold/10 transition flex items-center justify-center min-h-[44px] min-w-[44px]"
                 aria-label="Decrease quantity"
               >
                 <HiMinus size={18} />
@@ -189,7 +198,7 @@ export default function ItemModal({ item, onClose }: ItemModalProps) {
               />
               <button
                 onClick={() => setQty(qty + 1)}
-                className="p-2 rounded-full border border-royal-gold/30 hover:bg-royal-gold/10 transition"
+                className="p-3 rounded-full border border-royal-gold/30 hover:bg-royal-gold/10 transition flex items-center justify-center min-h-[44px] min-w-[44px]"
                 aria-label="Increase quantity"
               >
                 <HiPlus size={18} />

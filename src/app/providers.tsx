@@ -11,9 +11,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <LanguageProvider>
       <DarkModeProvider>
         <CartProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-royal-maroon focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+          >
+            Skip to main content
+          </a>
           <div className="min-h-screen flex flex-col">
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
             <Footer />
           </div>
         </CartProvider>

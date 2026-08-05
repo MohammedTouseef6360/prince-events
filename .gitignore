@@ -11,3 +11,12 @@ data/orders.json
 data/gallery.json
 data/testimonials.json
 data/settings.json
+serviceAccountKey.json
+*firebase-adminsdk*.json
+*.json.pem
+.env.local
+dev-server.log
+playwright-report/
+test-results/
+refinvoice.html
+refinvoice_files/

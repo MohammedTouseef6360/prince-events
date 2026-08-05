@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { firebaseDb } from "@/lib/firebase-db";
+import { isAuthorizedWrite } from "@/lib/session";
+import { settingsSchema } from "@/lib/validation";
 
 const DEFAULT_SETTINGS = {
   businessName: "PRINCE EVENTS",
@@ -12,7 +14,6 @@ const DEFAULT_SETTINGS = {
   address: "Bengaluru, Karnataka",
   freeRadius: 10,
   travelChargePerKm: 10,
-  adminPassword: "prince@123",
   currency: "₹",
   gstin: "",
   fssai: "",
@@ -29,13 +30,22 @@ export async function GET() {
     settings = DEFAULT_SETTINGS;
     await firebaseDb.settings.save(DEFAULT_SETTINGS);
   }
-  return NextResponse.json(settings, { headers: { 'Cache-Control': 'public, max-age=60' } });
+  const { adminPassword, ...publicSettings } = settings;
+  return NextResponse.json(publicSettings, { headers: { 'Cache-Control': 'public, max-age=60' } });
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await isAuthorizedWrite(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const data = await request.json();
-    const saved = await firebaseDb.settings.save(data);
+    const { adminPassword, ...raw } = data;
+    const parsed = settingsSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid settings data" }, { status: 400 });
+    }
+    const saved = await firebaseDb.settings.save(parsed.data);
     return NextResponse.json(saved);
   } catch {
     return NextResponse.json({ error: "Save failed" }, { status: 500 });

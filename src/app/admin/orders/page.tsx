@@ -3,13 +3,14 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAdminSession } from "@/hooks/useAdminSession";
 import dynamic from "next/dynamic";
 const PDFDownload = dynamic(() => import("@/components/PDFDownload"), { ssr: false });
 import {
   HiCheck, HiCog, HiSearch, HiFilter, HiX,
   HiClock, HiShoppingBag, HiPhone, HiLocationMarker,
   HiCalendar, HiArrowLeft, HiChevronDown, HiTrash, HiSortAscending,
-  HiPhotograph, HiEye, HiPencil, HiPlus, HiSave,
+  HiPhotograph, HiEye, HiPencil, HiPlus, HiSave, HiDocumentText,
 } from "react-icons/hi";
 
 interface OrderItem {
@@ -34,6 +35,7 @@ interface Order {
   total: number;
   status: string;
   invoiceImage?: string;
+  invoiceNo?: string;
   createdAt: string;
 }
 
@@ -52,6 +54,7 @@ function AdminOrdersPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const checking = useAdminSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -71,10 +74,9 @@ function AdminOrdersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("prince-events-admin");
-    if (!isAdmin) router.push("/admin/login");
+    if (checking) return;
     fetchOrders();
-  }, [router]);
+  }, [router, checking]);
 
   useEffect(() => {
     const d = searchParams.get("date");
@@ -231,7 +233,7 @@ function AdminOrdersPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-maroon to-royal-maroon-dark text-white px-6 py-5 shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-1.5 rounded-lg hover:bg-white/10 transition">
+          <button aria-label="Back to dashboard" onClick={() => router.push("/admin/dashboard")} className="text-royal-gold hover:text-royal-gold-light p-3 rounded-lg hover:bg-white/10 transition min-h-[44px] min-w-[44px] flex items-center justify-center">
             <HiArrowLeft size={20} />
           </button>
           <div>
@@ -248,14 +250,16 @@ function AdminOrdersPage() {
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
             <span>Error: {error}</span>
-            <button onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
+            <button aria-label="Dismiss error" onClick={() => setError("")} className="ml-auto text-red-500 hover:text-red-700">&times;</button>
           </div>
         )}
         {/* Search, Sort, Date Filter */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
+            <label htmlFor="order-search" className="sr-only">Search orders</label>
             <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
+              id="order-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -263,17 +267,21 @@ function AdminOrdersPage() {
               className="royal-input pl-10"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSearchQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <HiX size={16} />
               </button>
             )}
           </div>
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="royal-input w-auto"
-          />
+          <div className="relative">
+            <label htmlFor="order-date-filter" className="sr-only">Filter by date</label>
+            <input
+              id="order-date-filter"
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="royal-input w-auto"
+            />
+          </div>
           {dateFilter && (
             <button onClick={() => setDateFilter("")} className="text-red-500 text-sm hover:underline">
               Clear Date
@@ -291,7 +299,7 @@ function AdminOrdersPage() {
               <HiChevronDown size={12} />
             </button>
             {showSortMenu && (
-              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-royal-gold/20 z-20 min-w-[170px] overflow-hidden animate-fade-in">
+              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-royal-gold/20 z-20 min-w-[170px] overflow-hidden animate-fade-in">
                 {sortOptions.map((opt) => (
                   <button
                     key={opt.key}
@@ -399,9 +407,9 @@ function AdminOrdersPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-3 flex-wrap">
-                            <h3 className="font-bold text-gray-800 dark:text-gray-200 truncate">
+                            <p className="font-bold text-gray-800 dark:text-gray-200 truncate">
                               {order.customerName}
-                            </h3>
+                            </p>
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusColors[order.status]}`}>
                               {order.status.toUpperCase()}
                             </span>
@@ -415,6 +423,12 @@ function AdminOrdersPage() {
                               <HiCalendar size={12} />
                               {order.date}
                             </span>
+                            {order.invoiceNo && (
+                              <span className="flex items-center gap-1 font-mono text-xs">
+                                <HiDocumentText size={12} />
+                                {order.invoiceNo}
+                              </span>
+                            )}
                             <span className="font-bold text-royal-maroon dark:text-royal-gold">
                               ₹{order.total}
                             </span>
@@ -441,7 +455,7 @@ function AdminOrdersPage() {
                             <HiChevronDown size={12} />
                           </button>
                           {ddOpen && (
-                            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-royal-gold/20 z-20 min-w-[160px] overflow-hidden animate-fade-in">
+                            <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-royal-gold/20 z-20 min-w-[160px] overflow-hidden animate-fade-in">
                               {statusOptions.map((opt) => {
                                 if (opt.value === order.status) return null;
                                 return (
@@ -469,7 +483,7 @@ function AdminOrdersPage() {
                             deleteOrder(order._id);
                           }}
                           disabled={deletingOrder === order._id}
-                          className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 text-red-500 text-xs font-bold px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 text-red-500 text-xs font-bold px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                         >
                           {deletingOrder === order._id ? (
                             <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
@@ -540,6 +554,7 @@ function AdminOrdersPage() {
                                       onChange={(e) => updateEditItem(i, "itemName", e.target.value)}
                                       className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs"
                                       placeholder="Item name"
+                                      aria-label={`Item name, line ${i + 1}`}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5 text-center">
@@ -549,6 +564,7 @@ function AdminOrdersPage() {
                                       value={item.qty}
                                       onChange={(e) => updateEditItem(i, "qty", Number(e.target.value))}
                                       className="w-14 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-center"
+                                      aria-label={`Quantity, line ${i + 1}`}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5 text-right">
@@ -559,11 +575,12 @@ function AdminOrdersPage() {
                                       value={item.price}
                                       onChange={(e) => updateEditItem(i, "price", Number(e.target.value))}
                                       className="w-20 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-right"
+                                      aria-label={`Rate, line ${i + 1}`}
                                     />
                                   </td>
                                   <td className="px-2 py-1.5 text-right font-bold text-xs">₹{(item.qty * item.price).toFixed(2)}</td>
                                   <td className="px-2 py-1.5">
-                                    <button onClick={() => removeEditItem(i)} className="text-red-500 hover:text-red-700 p-1">
+                                    <button onClick={() => removeEditItem(i)} aria-label={`Remove item line ${i + 1}`} className="text-red-500 hover:text-red-700 p-3 min-h-[44px] min-w-[44px] flex items-center justify-center">
                                       <HiTrash size={14} />
                                     </button>
                                   </td>
@@ -665,6 +682,7 @@ function AdminOrdersPage() {
                                   subtotal: order.subtotal,
                                   travelCharge: order.travelCharge,
                                   total: order.total,
+                                  invoiceNo: order.invoiceNo,
                                 }}
                                 invoiceImageUrl={order.invoiceImage}
                               />
